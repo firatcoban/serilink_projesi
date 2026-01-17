@@ -1,0 +1,140 @@
+<style>
+    #loader-wrapper {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: linear-gradient(0deg, #f8931f 0%, #fff4a3 100%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        z-index: 9999; transition: opacity 0.8s ease-out, visibility 0.8s;
+        overflow: hidden;
+    }
+
+    /* 🔥 ARKA PLAN SHENRON */
+    #loader-wrapper::before {
+        content: "";
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 85vw; height: 85vh;
+        background-image: url('/images/shenron.png');
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        opacity: 0.12;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    /* 🔥 ÜSTTEKİ PROFİL ALANI */
+    .loader-content {
+        position: relative;
+        z-index: 5;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: -100px; /* Logoyu yukarı çeker */
+        margin-bottom: 60px; /* Toplarla arasına net boşluk bırakır */
+    }
+
+    .loader-pic {
+        width: 110px; height: 110px; 
+        object-fit: cover; border-radius: 50%; 
+        border: 4px solid #FFD700;
+        background-color: #fff;
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+        animation: loaderPulse 2s infinite ease-in-out;
+        margin-bottom: 15px;
+    }
+
+    @keyframes loaderPulse {
+        0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+        50% { transform: scale(1.05); box-shadow: 0 0 35px rgba(255, 215, 0, 0.7); }
+    }
+
+    .loader-username {
+        font-family: 'Bangers', cursive;
+        font-size: 32px; color: #000;
+        text-shadow: 2px 2px 0px rgba(255, 84, 0, 0.3);
+        margin: 0;
+    }
+
+    /* 🔥 ALTAKİ DÖNEN 7 TOP ALANI 🔥 */
+    .loader-balls-area {
+        position: relative;
+        width: 140px; height: 140px;
+        z-index: 4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .ball-orbit {
+        position: absolute;
+        width: 100%; height: 100%;
+        animation: rotateOrbit 3.5s linear infinite;
+    }
+
+    .loader-ball {
+        position: absolute; width: 35px; height: 35px;
+        background-size: contain; background-repeat: no-repeat;
+    }
+
+    /* 🔥 TOPLARIN TEK TEK KONUMLANDIRILMASI (İÇ İÇE GEÇMEYİ ÖNLER) 🔥 */
+    .loader-ball:nth-child(1) { background-image: url('/images/dragonball_1.png'); top: -10px; left: 50%; transform: translateX(-50%); }
+    .loader-ball:nth-child(2) { background-image: url('/images/dragonball_2.png'); top: 15%; right: -15px; }
+    .loader-ball:nth-child(3) { background-image: url('/images/dragonball_3.png'); bottom: 15%; right: -15px; }
+    .loader-ball:nth-child(4) { background-image: url('/images/dragonball_4.png'); bottom: -10px; left: 50%; transform: translateX(-50%); }
+    .loader-ball:nth-child(5) { background-image: url('/images/dragonball_5.png'); bottom: 15%; left: -15px; }
+    .loader-ball:nth-child(6) { background-image: url('/images/dragonball_6.png'); top: 15%; left: -15px; }
+    
+    /* 7. Top Merkezde */
+    .center-ball {
+        position: absolute;
+        width: 40px; height: 40px;
+        background-image: url('/images/dragonball_7.png');
+        background-size: contain; background-repeat: no-repeat;
+        animation: pulseCenter 1.5s infinite;
+    }
+
+    @keyframes rotateOrbit { 100% { transform: rotate(360deg); } }
+    @keyframes pulseCenter { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+
+    .loader-status {
+        margin-top: 40px; font-family: 'Bangers', cursive;
+        font-size: 24px; color: #023E8A; letter-spacing: 3px;
+        animation: blinkText 1.5s infinite;
+    }
+    
+    @keyframes blinkText { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .loader-hidden { opacity: 0; visibility: hidden; }
+</style>
+
+<div id="loader-wrapper">
+    <div class="loader-content">
+        <img src="/images/logo.jpg" alt="Logo" class="loader-pic">
+        <h2 class="loader-username">Buğra Güzelsoy</h2>
+    </div>
+
+    <div class="loader-balls-area">
+        <div class="ball-orbit">
+            <div class="loader-ball"></div>
+            <div class="loader-ball"></div>
+            <div class="loader-ball"></div>
+            <div class="loader-ball"></div>
+            <div class="loader-ball"></div>
+            <div class="loader-ball"></div>
+        </div>
+        <div class="center-ball"></div>
+    </div>
+
+    <div class="loader-status">EJDERHA ÇAĞRILIYOR...</div>
+</div>
+
+<script>
+    window.addEventListener('load', function() {
+        const loader = document.getElementById('loader-wrapper');
+        setTimeout(() => {
+            loader.classList.add('loader-hidden');
+        }, 2500); 
+    });
+</script>

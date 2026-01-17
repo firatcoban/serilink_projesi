@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil | Dragon Ball Z 🔥</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --db-orange: #FF5400;
+            --db-gold: #FFD700;
+            --db-dark-blue: #051c3b;
+            --glass-dark: rgba(5, 28, 59, 0.65);
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%);
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            margin: 0; padding: 40px 20px;
+            display: flex; justify-content: center; align-items: center;
+            color: white;
+            cursor: url('/images/dragonball_cloudy.png') 16 16, auto;
+            overflow-x: hidden; /* Yatay kaydırmayı engelle */
+        }
+
+        /* --- ARKA PLAN SHENRON --- */
+        body::before {
+            content: "";
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw; height: 80vh;
+            background-image: url('/images/shenron.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.1; 
+            z-index: -1; pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        /* --- 🔥 YENİ ULTRA DİNAMİK TOP ANİMASYONU 🔥 --- */
+        .particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1;
+        }
+
+        .particles span {
+            position: absolute; display: block;
+            background-size: contain; background-repeat: no-repeat;
+            /* Başlangıçta ekranın altında gizli */
+            bottom: -20vh; 
+            opacity: 0;
+            /* Yeni 'floatUp' animasyonunu kullanıyoruz */
+            animation: floatUp ease-in-out infinite;
+        }
+
+        /* Gerçek Dragon Ball Ruhu Hareketi:
+           - Sadece yukarı değil, sağa sola da süzülür (translateX).
+           - Döner (rotate).
+           - Canlı gibi nefes alır (scale - büyüyüp küçülme).
+        */
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg) scale(0.9);
+                opacity: 0; bottom: -20vh; /* Ekranın altından başla */
+            }
+            20% {
+                opacity: 0.8; /* Hızlıca görünür ol */
+            }
+            50% {
+                /* Yarı yolda sağa kay, biraz büyü */
+                transform: translateY(-50vh) translateX(30px) rotate(180deg) scale(1.1);
+                opacity: 1;
+            }
+            80% {
+                 opacity: 0.8;
+            }
+            100% {
+                /* Sona gelince sola kay, küçül ve kaybol */
+                transform: translateY(-120vh) translateX(-20px) rotate(360deg) scale(0.9);
+                opacity: 0; bottom: 100vh; /* Ekranın üstünden çık */
+            }
+        }
+
+        /* Her topa farklı hız, boyut ve gecikme veriyoruz ki doğal dursun */
+        .particles span:nth-child(1){ background-image: url('/images/dragonball_1.png'); left: 10%; width: 45px; height: 45px; animation-duration: 18s; animation-delay: 0s; }
+        .particles span:nth-child(2){ background-image: url('/images/dragonball_2.png'); left: 25%; width: 30px; height: 30px; animation-duration: 25s; animation-delay: 5s; }
+        .particles span:nth-child(3){ background-image: url('/images/dragonball_3.png'); left: 40%; width: 55px; height: 55px; animation-duration: 20s; animation-delay: 2s; }
+        .particles span:nth-child(4){ background-image: url('/images/dragonball_4.png'); left: 60%; width: 35px; height: 35px; animation-duration: 22s; animation-delay: 8s; }
+        .particles span:nth-child(5){ background-image: url('/images/dragonball_7.png'); left: 80%; width: 50px; height: 50px; animation-duration: 16s; animation-delay: 1s; }
+        /* Ekstra toplar ekleyelim daha dolu görünsün */
+        .particles span:nth-child(6){ background-image: url('/images/dragonball_5.png'); left: 15%; width: 25px; height: 25px; animation-duration: 28s; animation-delay: 12s; }
+        .particles span:nth-child(7){ background-image: url('/images/dragonball_6.png'); left: 70%; width: 40px; height: 40px; animation-duration: 24s; animation-delay: 15s; }
+
+
+        /* --- ANA KUTU --- */
+        .container {
+            width: 100%; max-width: 500px;
+            background: var(--glass-dark);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            border-radius: 35px;
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(0, 80, 255, 0.1);
+            position: relative;
+        }
+
+        /* --- GERİ DÖN BUTONU --- */
+        .back-btn {
+            position: absolute; top: 25px; left: 25px;
+            text-decoration: none; color: var(--db-gold); font-size: 22px;
+            transition: 0.3s; opacity: 0.7;
+        }
+        .back-btn:hover { transform: translateX(-3px); opacity: 1; filter: drop-shadow(0 0 5px var(--db-gold)); }
+
+        /* --- BAŞLIK --- */
+        .header-title {
+            text-align: center; font-family: 'Bangers', cursive;
+            font-size: 38px; letter-spacing: 1px; margin: 10px 0 30px 0;
+            background: linear-gradient(to right, var(--db-gold), var(--db-orange));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 15px rgba(255, 84, 0, 0.3);
+        }
+
+        /* --- MEVCUT RESİM --- */
+        .current-img-area { text-align: center; margin-bottom: 30px; position: relative; }
+        .current-img { 
+            width: 130px; height: 130px; border-radius: 50%; object-fit: cover; 
+            border: 4px solid var(--db-gold); 
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+            transition: 0.3s;
+        }
+        .current-img:hover { transform: scale(1.05); box-shadow: 0 0 40px rgba(255, 215, 0, 0.5); }
+        .img-label { font-size: 12px; color: #ccc; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- INPUTLAR --- */
+        .input-group { margin-bottom: 20px; }
+        .label-text { display: block; margin-bottom: 8px; font-size: 13px; color: #bbb; margin-left: 10px; font-weight: 600; }
+        .input-wrapper {
+            background: rgba(255, 255, 255, 0.08); border-radius: 15px; padding: 5px 20px;
+            display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.3s;
+        }
+        .input-wrapper:focus-within {
+            background: rgba(255, 255, 255, 0.15); border-color: var(--db-gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+        }
+        .input-wrapper i { color: var(--db-gold); margin-right: 15px; font-size: 18px; }
+        
+        input[type="text"] {
+            border: none; background: transparent; width: 100%; padding: 15px 0;
+            font-family: 'Poppins', sans-serif; font-size: 15px; color: white; outline: none;
+        }
+        input::placeholder { color: rgba(255, 255, 255, 0.3); }
+
+        /* --- DOSYA YÜKLEME BUTONU --- */
+        input[type="file"] { padding: 10px 0; color: #ddd; font-size: 14px; width: 100%; }
+        input[type="file"]::file-selector-button {
+            background: var(--db-orange); border: none; padding: 8px 15px;
+            border-radius: 50px; color: white; cursor: pointer; margin-right: 15px;
+            font-weight: bold; transition: 0.2s; font-family: 'Poppins', sans-serif;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        input[type="file"]::file-selector-button:hover { background: #ff2600; transform: translateY(-2px); }
+
+        /* --- KAYDET BUTONU --- */
+        button.save-btn {
+            background: linear-gradient(45deg, var(--db-orange), #ff2600);
+            color: white; padding: 18px; border-radius: 15px; border: none; width: 100%;
+            font-family: 'Bangers', cursive; font-size: 24px; letter-spacing: 1px;
+            cursor: pointer; margin-top: 15px; transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(255, 84, 0, 0.2);
+        }
+        button.save-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(255, 84, 0, 0.4); }
+
+    </style>
+</head>
+<body>
+
+    <div class="particles">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+
+    <div class="container">
+        <a href="/admin" class="back-btn" title="Geri Dön">
+            <i class="fas fa-chevron-left"></i>
+        </a>
+
+        <h1 class="header-title">PROFİL AYARLARI</h1>
+
+        <form action="/profile/update" method="POST" enctype="multipart/form-data">
+            <div class="current-img-area">
+                <img src="<%= profile.resim_url %>" class="current-img" alt="Profil Resmi">
+                <div class="img-label">Şu Anki Görünüm</div>
+            </div>
+
+            <div class="input-group">
+                <span class="label-text">GÖRÜNEN İSİM</span>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" name="ad_soyad" value="<%= profile.ad_soyad %>" required placeholder="Adın Soyadın">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <span class="label-text">BİYOGRAFİ (ALT YAZI)</span>
+                <div class="input-wrapper">
+                    <i class="fas fa-pen-nib"></i>
+                    <input type="text" name="biyografi" value="<%= profile.biyografi %>" placeholder="Kısa bir söz yaz...">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <span class="label-text">YENİ RESİM YÜKLE</span>
+                <div class="input-wrapper">
+                    <i class="fas fa-camera"></i>
+                    <input type="file" name="profil_resmi" accept="image/*">
+                </div>
+            </div>
+
+            <button type="submit" class="save-btn">KAYDET VE GÜNCELLE 🔥</button>
+        </form>
+    </div>
+
+</body>
+</html>

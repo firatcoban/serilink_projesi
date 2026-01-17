@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İstatistikler | Dragon Ball Z 🔥</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --db-orange: #FF5400; --db-gold: #FFD700; --db-dark-blue: #051c3b; --glass-dark: rgba(5, 28, 59, 0.75); }
+        body {
+            background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%);
+            min-height: 100vh; font-family: 'Poppins', sans-serif;
+            margin: 0; padding: 40px 20px; display: flex; justify-content: center;
+            color: white; cursor: url('/images/dragonball_cloudy.png') 16 16, auto;
+        }
+        body::before {
+            content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80vw; height: 80vh; background-image: url('/images/shenron.png');
+            background-repeat: no-repeat; background-position: center; background-size: contain;
+            opacity: 0.1; z-index: -1; filter: grayscale(100%); pointer-events: none;
+        }
+        .container {
+            width: 100%; max-width: 600px; background: var(--glass-dark); backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 215, 0, 0.2); border-radius: 35px;
+            padding: 30px; box-shadow: 0 0 50px rgba(0, 80, 255, 0.1); position: relative;
+        }
+        .back-btn { position: absolute; top: 25px; left: 25px; color: var(--db-gold); font-size: 22px; transition: 0.3s; opacity: 0.7; }
+        .back-btn:hover { transform: translateX(-3px); opacity: 1; }
+        .header-title {
+            text-align: center; font-family: 'Bangers', cursive; font-size: 38px; margin: 10px 0 20px 0;
+            background: linear-gradient(to right, var(--db-gold), var(--db-orange));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .total-power-box {
+            background: linear-gradient(45deg, var(--db-orange), #ff2600);
+            border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(255, 84, 0, 0.3); position: relative; overflow: hidden;
+        }
+        .total-label { font-size: 14px; font-weight: bold; text-transform: uppercase; color: rgba(255,255,255,0.8); }
+        .total-count { font-family: 'Bangers', cursive; font-size: 48px; line-height: 1; text-shadow: 2px 2px 0px rgba(0,0,0,0.2); }
+        .stat-list { display: flex; flex-direction: column; gap: 15px; }
+        .stat-item {
+            background: rgba(255, 255, 255, 0.08); border-radius: 15px; padding: 15px 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.3s; position: relative;
+        }
+        .stat-item:hover { transform: translateY(-3px); background: rgba(255, 255, 255, 0.12); }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; position: relative; z-index: 2; }
+        .stat-title { font-weight: 700; font-size: 15px; color: white; display: flex; align-items: center; gap: 10px; }
+        .stat-count { font-family: 'Bangers', cursive; font-size: 20px; color: var(--db-gold); }
+        .progress-bg { width: 100%; height: 8px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden; position: relative; z-index: 2; }
+        .progress-fill {
+            height: 100%; border-radius: 10px;
+            background: linear-gradient(90deg, var(--db-gold), var(--db-orange));
+            width: 0%; transition: width 1.5s ease-out;
+            box-shadow: 0 0 10px var(--db-orange);
+        }
+        .rank {
+            position: absolute; left: -10px; top: 50%; transform: translateY(-50%);
+            font-size: 60px; font-weight: 900; color: rgba(255, 255, 255, 0.03);
+            font-family: 'Bangers', cursive; z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/admin" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+        <h1 class="header-title">GÜÇ SEVİYELERİ 📊</h1>
+
+        <div class="total-power-box">
+            <div class="total-label">TOPLAM TIKLANMA GÜCÜ</div>
+            <div class="total-count">⚡ <%= total %></div>
+        </div>
+
+        <div class="stat-list">
+            <% links.forEach((link, index) => { 
+                let yuzde = total > 0 ? (link.tiklanma_sayisi / total) * 100 : 0;
+            %>
+                <div class="stat-item">
+                    <div class="rank">#<%= index + 1 %></div>
+                    <div class="stat-header">
+                        <div class="stat-title">
+                            <% if (link.platform) { %>
+                                <i class="fab fa-<%= link.platform %>" style="color:#aaa;"></i>
+                            <% } else { %>
+                                <i class="fas fa-link" style="color:#aaa;"></i>
+                            <% } %>
+                            <%= link.title %>
+                        </div>
+                        <div class="stat-count"><%= link.tiklanma_sayisi %> Tık</div>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-fill" style="width: <%= yuzde %>%;"></div>
+                    </div>
+                </div>
+            <% }); %>
+
+            <% if(links.length === 0) { %>
+                <div style="text-align:center; color:#888;">Henüz veri yok...</div>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>

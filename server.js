@@ -25,11 +25,12 @@ const upload = multer({ storage: storage });
 
 // --- 3. VERİTABANI BAĞLANTISI (İNTERNET/CLOUD) ---
 // BURADAKİ BİLGİLERİ CLEVER CLOUD PANELİNDEN ALIP YAPIŞTIR
+// --- 3. VERİTABANI BAĞLANTISI (Cloud - DÜZELTİLDİ) ---
 const db = mysql.createConnection({
-    host: 'BURAYA_HOST_YAZ',           // Örn: uys...clever-cloud.com
-    user: 'BURAYA_USER_YAZ',           // Örn: uqh2...
-    password: 'BURAYA_PASSWORD_YAZ',   // Örn: H2s... (Panelde gizliyse 'göz' ikonuna bas)
-    database: 'BURAYA_DATABASE_YAZ',   // Örn: be9... (Database Name)
+    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',  // Senin Host adresin (Resimden aldım)
+    user: 'uzzt3cxlzejgx2x3',                                      // Senin Kullanıcı adın (Resimden aldım)
+    password: 'cI3z7JLs2OHiQ23zOj4M',                           // ⚠️ DİKKAT: Buraya Clever Cloud'daki Password'ü yapıştır!
+    database: 'b9jczsecmhesvtz8fkx0',                              // Senin Veritabanı adın (Resimden aldım)
     multipleStatements: true
 });
 

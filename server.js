@@ -14,125 +14,130 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // --- 2. DOSYA YÜKLEME AYARLARI ---
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, './public/images/');
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'profil-' + Date.now() + path.extname(file.originalname));
-    }
+    destination: function (req, file, cb) { cb(null, './public/images/'); },
+    filename: function (req, file, cb) { cb(null, 'profil-' + Date.now() + path.extname(file.originalname)); }
 });
 const upload = multer({ storage: storage });
 
-// --- 3. VERİTABANI BAĞLANTISI (İNTERNET/CLOUD) ---
-// BURADAKİ BİLGİLERİ CLEVER CLOUD PANELİNDEN ALIP YAPIŞTIR
-// --- 3. VERİTABANI BAĞLANTISI (Cloud - DÜZELTİLDİ) ---
+// --- 3. VERİTABANI BAĞLANTISI ---
+// ⚠️ BURAYA KENDİ BİLGİLERİNİ GİR
 const db = mysql.createConnection({
-    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',  // Senin Host adresin (Resimden aldım)
-    user: 'uzzt3cxlzejgx2x3',                                      // Senin Kullanıcı adın (Resimden aldım)
-    password: 'cI3z7JLs2OHiQ23zOj4M',                           // ⚠️ DİKKAT: Buraya Clever Cloud'daki Password'ü yapıştır!
-    database: 'b9jczsecmhesvtz8fkx0',                              // Senin Veritabanı adın (Resimden aldım)
+    host: 'BURAYA_HOST_YAZ',
+    user: 'BURAYA_USER_YAZ',
+    password: 'BURAYA_PASSWORD_YAZ',
+    database: 'BURAYA_DATABASE_YAZ',
     multipleStatements: true
 });
 
 db.connect((err) => {
-    if (err) { 
-        console.error('❌ Bağlantı Hatası!', err.message); 
-        return; 
-    }
-    console.log('✅ İnternet Veritabanına (Cloud) Bağlandı!');
+    if (err) { console.error('❌ Hata:', err.message); return; }
+    console.log('✅ Veritabanına Bağlandı (SaaS Modu)');
     
-    // --- TABLOLARI OTOMATİK OLUŞTUR ---
-    // Clever Cloud veritabanın boş olduğu için bu kod tabloları senin için yaratacak.
-    const kurulumSQL = `
-        CREATE TABLE IF NOT EXISTS profile (
-            id INT PRIMARY KEY, ad_soyad VARCHAR(100), biyografi TEXT, resim_url TEXT
+    // --- 4. SAAS TABLOLARI (Çoklu Kullanıcı) ---
+    const saasSQL = `
+        CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(50) UNIQUE NOT NULL,
+            ad_soyad VARCHAR(100),
+            biyografi TEXT,
+            resim_url TEXT
         );
+
         CREATE TABLE IF NOT EXISTS links (
-            id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255), url TEXT, 
-            platform VARCHAR(50) DEFAULT 'web', tiklanma_sayisi INT DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT,
+            title VARCHAR(255),
+            url TEXT,
+            platform VARCHAR(50) DEFAULT 'web',
+            tiklanma_sayisi INT DEFAULT 0,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
-        INSERT IGNORE INTO profile (id, ad_soyad, biyografi, resim_url) 
-        VALUES (1, 'Fırat Çoban', 'Yazılım ve Teknoloji', '/images/logo.jpg');
+
+        -- ÖRNEK KULLANICILAR (Sadece ilk seferde çalışır) --
+        INSERT IGNORE INTO users (id, username, ad_soyad, biyografi, resim_url) VALUES 
+        (1, 'firat', 'Fırat Çoban', 'SaaS Kurucusu & Yazılımcı', '/images/logo.jpg'),
+        (2, 'ahmet', 'Ahmet Yılmaz', 'Dijital İçerik Üreticisi', 'https://via.placeholder.com/150');
+        
+        -- ÖRNEK LİNKLER --
+        INSERT IGNORE INTO links (id, user_id, title, url) VALUES
+        (1, 1, 'GitHub Profilim', 'https://github.com/firatcoban'),
+        (2, 2, 'Ahmet YouTube', 'https://youtube.com');
     `;
-    db.query(kurulumSQL, (err) => {
-        if(err) console.log("Tablo Oluşturma Hatası:", err);
-        else console.log("✅ Tablolar Hazırlandı.");
+    
+    db.query(saasSQL, (err) => {
+        if(err) console.log("Tablo Hatası:", err);
+        else console.log("✅ SaaS Tabloları ve Örnek Kullanıcılar Hazır!");
     });
 });
 
-// --- 4. ROTALAR ---
+// --- 5. ROTALAR (Link Yönetimi) ---
 
-// ANA SAYFA
+// ANA SAYFA (Landing Page)
 app.get('/', (req, res) => {
-    db.query('SELECT * FROM profile WHERE id = 1', (err, profileResult) => {
-        db.query('SELECT * FROM links ORDER BY id DESC', (err, linkResult) => {
-            if (err) { console.log(err); res.send("Veritabanı hatası"); return; }
+    res.send(`
+        <h1>Serilink'e Hoşgeldiniz!</h1>
+        <p>Kendi linkini oluştur.</p>
+        <p>Örnek Profiller:</p>
+        <ul>
+            <li><a href="/firat">/firat</a></li>
+            <li><a href="/ahmet">/ahmet</a></li>
+        </ul>
+    `);
+});
+
+// PROFİL GÖRÜNTÜLEME (DİNAMİK ROTA - SİHİR BURADA ✨)
+app.get('/:kullaniciadi', (req, res) => {
+    const kadi = req.params.kullaniciadi;
+
+    // 1. Önce kullanıcıyı bul
+    db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {
+        if (err || userResult.length === 0) {
+            return res.send("<h1>Böyle bir kullanıcı bulunamadı! 😕</h1>");
+        }
+
+        const user = userResult[0];
+
+        // 2. Sonra o kullanıcının linklerini bul
+        db.query('SELECT * FROM links WHERE user_id = ? ORDER BY id DESC', [user.id], (err, linkResult) => {
+            // views/index.ejs dosyasına verileri gönder
             res.render('index', { 
-                links: linkResult,
-                profile: profileResult[0] || { ad_soyad: 'Admin', biyografi: '', resim_url: '/images/logo.jpg' }
+                profile: user,
+                links: linkResult
             });
         });
     });
 });
 
-// PROFİL DÜZENLEME
-app.get('/profile', (req, res) => {
-    db.query('SELECT * FROM profile WHERE id = 1', (err, result) => {
-        res.render('profile', { profile: result[0] || {} });
-    });
-});
-
-app.post('/profile/update', upload.single('profil_resmi'), (req, res) => {
-    const { ad_soyad, biyografi } = req.body;
-    let yeniResimYolu = req.file ? '/images/' + req.file.filename : null;
-    let sql = yeniResimYolu ? 
-        "UPDATE profile SET ad_soyad = ?, biyografi = ?, resim_url = ? WHERE id = 1" : 
-        "UPDATE profile SET ad_soyad = ?, biyografi = ? WHERE id = 1";
-    let params = yeniResimYolu ? [ad_soyad, biyografi, yeniResimYolu] : [ad_soyad, biyografi];
-    db.query(sql, params, () => res.redirect('/profile'));
-});
-
-// ADMİN PANELİ
-app.get('/admin', (req, res) => {
-    db.query('SELECT * FROM links ORDER BY id DESC', (err, results) => {
+// --- ŞİMDİLİK ADMİN PANELİ SADECE FIRAT (ID=1) İÇİN ÇALIŞSIN ---
+// (İleride buraya Giriş Yap / Register sistemi ekleyeceğiz)
+app.get('/admin/panel', (req, res) => {
+    db.query('SELECT * FROM links WHERE user_id = 1 ORDER BY id DESC', (err, results) => {
         res.render('dashboard', { links: results });
     });
 });
 
-// İSTATİSTİK SAYFASI
-app.get('/stats', (req, res) => {
-    db.query('SELECT * FROM links ORDER BY tiklanma_sayisi DESC', (err, results) => {
-        if (err) { console.log(err); return res.send("Veritabanı hatası!"); }
-        let total = 0;
-        results.forEach(link => { total += link.tiklanma_sayisi; });
-        res.render('statistics', { links: results, total: total });
-    });
-});
-
-// LİNK EKLEME
 app.post('/add', (req, res) => {
     const { baslik, url, platform } = req.body;
     let cleanUrl = (url.startsWith('http')) ? url : 'https://' + url;
-    db.query("INSERT INTO links (title, url, platform, tiklanma_sayisi) VALUES (?, ?, ?, 0)", 
-        [baslik, cleanUrl, platform || 'web'], () => res.redirect('/admin'));
+    // user_id = 1 diyerek sadece Fırat'a ekliyoruz şimdilik
+    db.query("INSERT INTO links (user_id, title, url, platform) VALUES (1, ?, ?, ?)", 
+        [baslik, cleanUrl, platform || 'web'], () => res.redirect('/admin/panel'));
 });
 
 // LİNK SİLME
 app.get('/delete/:id', (req, res) => {
-    db.query('DELETE FROM links WHERE id = ?', [req.params.id], () => res.redirect('/admin'));
+    db.query('DELETE FROM links WHERE id = ?', [req.params.id], () => res.redirect('/admin/panel'));
 });
 
-// YÖNLENDİRME (TIK SAYACI)
+// YÖNLENDİRME SİSTEMİ
 app.get('/git/:id', (req, res) => {
-    const id = req.params.id;
-    db.query("UPDATE links SET tiklanma_sayisi = tiklanma_sayisi + 1 WHERE id = ?", [id], () => {
-        db.query("SELECT url FROM links WHERE id = ?", [id], (err, rows) => {
+    db.query("UPDATE links SET tiklanma_sayisi = tiklanma_sayisi + 1 WHERE id = ?", [req.params.id], () => {
+        db.query("SELECT url FROM links WHERE id = ?", [req.params.id], (err, rows) => {
             if(rows.length > 0) res.redirect(rows[0].url);
             else res.redirect('/');
         });
     });
 });
 
-// SUNUCUYU BAŞLAT (Render için port ayarı eklendi)
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Sunucu Başladı: http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 SaaS Sunucusu Başladı!`));

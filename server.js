@@ -22,10 +22,10 @@ const upload = multer({ storage: storage });
 // --- 3. VERİTABANI BAĞLANTISI ---
 // ⚠️ BURAYA KENDİ BİLGİLERİNİ GİR
 const db = mysql.createConnection({
-    host: 'BURAYA_HOST_YAZ',
-    user: 'BURAYA_USER_YAZ',
-    password: 'BURAYA_PASSWORD_YAZ',
-    database: 'BURAYA_DATABASE_YAZ',
+    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',
+    user: 'uzzt3cxlzejgx2x3',
+    password: 'cI3z7JLs2OHiQ23zOj4M',
+    database: 'b9jczsecmhesvtz8fkx0',
     multipleStatements: true
 });
 

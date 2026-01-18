@@ -60,8 +60,8 @@ db.connect((err) => {
 
         -- KULLANICILAR (FIRAT ve BUĞRA) --
         INSERT INTO users (id, username, ad_soyad, biyografi, resim_url) VALUES 
-        (1, 'firat', 'Fırat Çoban', 'SaaS Kurucusu & Yazılımcı', '/images/logo.jpg'),
-        (2, 'bugra', 'Buğra Güzelsoy', 'Girişimci & İçerik Üreticisi', 'https://via.placeholder.com/150');
+        (1, 'Admin', 'Fırat Çoban', 'SaaS Kurucusu & Yazılımcı', '/images/admin_logo.png'),
+        (2, 'Bu Güzelsoy', 'Buğra Güzelsoy', 'Girişimci & İçerik Üreticisi', '/images/logo.jpg');
         
         -- LİNKLER --
         INSERT INTO links (user_id, title, url, platform) VALUES

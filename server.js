@@ -20,12 +20,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // --- 3. VERİTABANI BAĞLANTISI ---
-// ⚠️ BURAYA KENDİ BİLGİLERİNİ GİR
+// ⚠️ BURAYA KENDİ BİLGİLERİNİ GİR (Tırnakları silme!)
 const db = mysql.createConnection({
-    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',
-    user: 'uzzt3cxlzejgx2x3',
-    password: 'cI3z7JLs2OHiQ23zOj4M',
-    database: 'b9jczsecmhesvtz8fkx0',
+    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',           // Clever Cloud Host
+    user: 'uzzt3cxlzejgx2x3',           // Clever Cloud User
+    password: 'cI3z7JLs2OHiQ23zOj4M',   // Clever Cloud Password
+    database: 'b9jczsecmhesvtz8fkx0',   // Clever Cloud Database Name
     multipleStatements: true
 });
 
@@ -33,9 +33,14 @@ db.connect((err) => {
     if (err) { console.error('❌ Hata:', err.message); return; }
     console.log('✅ Veritabanına Bağlandı (SaaS Modu)');
     
-    // --- 4. SAAS TABLOLARI (Çoklu Kullanıcı) ---
+    // --- 4. SAAS TABLOLARI (SIFIRLAMA VE KURULUM) ---
+    // Dikkat: DROP TABLE komutları eski tabloları silip yenisini açar.
     const saasSQL = `
-        CREATE TABLE IF NOT EXISTS users (
+        DROP TABLE IF EXISTS links;
+        DROP TABLE IF EXISTS users;
+        DROP TABLE IF EXISTS profile; 
+
+        CREATE TABLE users (
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(50) UNIQUE NOT NULL,
             ad_soyad VARCHAR(100),
@@ -43,7 +48,7 @@ db.connect((err) => {
             resim_url TEXT
         );
 
-        CREATE TABLE IF NOT EXISTS links (
+        CREATE TABLE links (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT,
             title VARCHAR(255),
@@ -53,80 +58,55 @@ db.connect((err) => {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
-        -- ÖRNEK KULLANICILAR (Sadece ilk seferde çalışır) --
-        INSERT IGNORE INTO users (id, username, ad_soyad, biyografi, resim_url) VALUES 
+        -- KULLANICILAR (FIRAT ve BUĞRA) --
+        INSERT INTO users (id, username, ad_soyad, biyografi, resim_url) VALUES 
         (1, 'firat', 'Fırat Çoban', 'SaaS Kurucusu & Yazılımcı', '/images/logo.jpg'),
-        (2, 'ahmet', 'Ahmet Yılmaz', 'Dijital İçerik Üreticisi', 'https://via.placeholder.com/150');
+        (2, 'bugra', 'Buğra Güzelsoy', 'Girişimci & İçerik Üreticisi', 'https://via.placeholder.com/150');
         
-        -- ÖRNEK LİNKLER --
-        INSERT IGNORE INTO links (id, user_id, title, url) VALUES
-        (1, 1, 'GitHub Profilim', 'https://github.com/firatcoban'),
-        (2, 2, 'Ahmet YouTube', 'https://youtube.com');
+        -- LİNKLER --
+        INSERT INTO links (user_id, title, url, platform) VALUES
+        (1, 'GitHub Profilim', 'https://github.com/firatcoban', 'github'),
+        (2, 'Buğra Instagram', 'https://instagram.com/bugraguzelsoy', 'instagram');
     `;
     
     db.query(saasSQL, (err) => {
         if(err) console.log("Tablo Hatası:", err);
-        else console.log("✅ SaaS Tabloları ve Örnek Kullanıcılar Hazır!");
+        else console.log("✅ Tablolar Sıfırlandı: Fırat ve Buğra Hazır!");
     });
 });
 
 // --- 5. ROTALAR (Link Yönetimi) ---
 
-// ANA SAYFA (Landing Page)
+// ANA SAYFA
 app.get('/', (req, res) => {
     res.send(`
-        <h1>Serilink'e Hoşgeldiniz!</h1>
-        <p>Kendi linkini oluştur.</p>
-        <p>Örnek Profiller:</p>
-        <ul>
-            <li><a href="/firat">/firat</a></li>
-            <li><a href="/ahmet">/ahmet</a></li>
-        </ul>
+        <div style="text-align:center; font-family:sans-serif; margin-top:50px;">
+            <h1>Serilink'e Hoşgeldiniz! 🚀</h1>
+            <p>Profiller:</p>
+            <a href="/firat" style="font-size:20px; display:block; margin:10px;">/firat</a>
+            <a href="/bugra" style="font-size:20px; display:block; margin:10px;">/bugra</a>
+        </div>
     `);
 });
 
-// PROFİL GÖRÜNTÜLEME (DİNAMİK ROTA - SİHİR BURADA ✨)
+// PROFİL GÖRÜNTÜLEME (DİNAMİK)
 app.get('/:kullaniciadi', (req, res) => {
     const kadi = req.params.kullaniciadi;
 
-    // 1. Önce kullanıcıyı bul
     db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {
         if (err || userResult.length === 0) {
-            return res.send("<h1>Böyle bir kullanıcı bulunamadı! 😕</h1>");
+            return res.send("<h1 style='text-align:center; margin-top:50px;'>Böyle bir kullanıcı yok! 😕</h1>");
         }
 
         const user = userResult[0];
 
-        // 2. Sonra o kullanıcının linklerini bul
         db.query('SELECT * FROM links WHERE user_id = ? ORDER BY id DESC', [user.id], (err, linkResult) => {
-            // views/index.ejs dosyasına verileri gönder
             res.render('index', { 
                 profile: user,
                 links: linkResult
             });
         });
     });
-});
-
-// --- ŞİMDİLİK ADMİN PANELİ SADECE FIRAT (ID=1) İÇİN ÇALIŞSIN ---
-// (İleride buraya Giriş Yap / Register sistemi ekleyeceğiz)
-app.get('/admin/panel', (req, res) => {
-    db.query('SELECT * FROM links WHERE user_id = 1 ORDER BY id DESC', (err, results) => {
-        res.render('dashboard', { links: results });
-    });
-});
-
-app.post('/add', (req, res) => {
-    const { baslik, url, platform } = req.body;
-    let cleanUrl = (url.startsWith('http')) ? url : 'https://' + url;
-    // user_id = 1 diyerek sadece Fırat'a ekliyoruz şimdilik
-    db.query("INSERT INTO links (user_id, title, url, platform) VALUES (1, ?, ?, ?)", 
-        [baslik, cleanUrl, platform || 'web'], () => res.redirect('/admin/panel'));
-});
-
-// LİNK SİLME
-app.get('/delete/:id', (req, res) => {
-    db.query('DELETE FROM links WHERE id = ?', [req.params.id], () => res.redirect('/admin/panel'));
 });
 
 // YÖNLENDİRME SİSTEMİ

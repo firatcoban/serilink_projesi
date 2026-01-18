@@ -3,29 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profil Düzenle | <%= profile.ad_soyad %></title>
+    <title>Profil | Dragon Ball Z 🔥</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
-        :root {
-            --db-orange: #FF5400;
-            --db-gold: #FFD700;
-            --glass-dark: rgba(5, 28, 59, 0.65);
-        }
+        :root { --db-orange: #FF5400; --db-gold: #FFD700; --db-dark-blue: #051c3b; --glass-dark: rgba(5, 28, 59, 0.65); }
 
         body {
             background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%);
-            min-height: 100vh;
-            font-family: 'Poppins', sans-serif;
+            min-height: 100vh; font-family: 'Poppins', sans-serif;
             margin: 0; padding: 40px 20px;
             display: flex; justify-content: center; align-items: center;
-            color: white;
+            color: white; cursor: url('/images/dragonball_cloudy.png') 16 16, auto;
             overflow-x: hidden;
         }
 
-        /* Arka Plan */
+        /* --- ARKA PLAN SHENRON --- */
         body::before {
             content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             width: 80vw; height: 80vh; background-image: url('/images/shenron.png');
@@ -33,48 +28,40 @@
             opacity: 0.1; z-index: -1; pointer-events: none; filter: grayscale(100%);
         }
 
-        /* Kutu Tasarımı */
-        .container {
-            width: 100%; max-width: 500px;
-            background: var(--glass-dark);
-            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border: 2px solid rgba(255, 215, 0, 0.2);
-            border-radius: 35px; padding: 40px;
-            box-shadow: 0 0 50px rgba(0, 80, 255, 0.1);
-            position: relative;
+        /* --- TOP ANİMASYONU --- */
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+        .particles span { position: absolute; display: block; background-size: contain; background-repeat: no-repeat; bottom: -20vh; opacity: 0; animation: floatUp ease-in-out infinite; }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0) rotate(0deg) scale(0.9); opacity: 0; bottom: -20vh; }
+            20% { opacity: 0.8; }
+            50% { transform: translateY(-50vh) translateX(30px) rotate(180deg) scale(1.1); opacity: 1; }
+            100% { transform: translateY(-120vh) translateX(-20px) rotate(360deg) scale(0.9); opacity: 0; bottom: 100vh; }
         }
+        .particles span:nth-child(1){ background-image: url('/images/dragonball_1.png'); left: 10%; width: 45px; height: 45px; animation-duration: 18s; }
+        .particles span:nth-child(2){ background-image: url('/images/dragonball_2.png'); left: 25%; width: 30px; height: 30px; animation-duration: 25s; animation-delay: 5s; }
+        .particles span:nth-child(3){ background-image: url('/images/dragonball_3.png'); left: 40%; width: 55px; height: 55px; animation-duration: 20s; animation-delay: 2s; }
+        .particles span:nth-child(4){ background-image: url('/images/dragonball_4.png'); left: 60%; width: 35px; height: 35px; animation-duration: 22s; animation-delay: 8s; }
+        .particles span:nth-child(5){ background-image: url('/images/dragonball_7.png'); left: 80%; width: 50px; height: 50px; animation-duration: 16s; animation-delay: 1s; }
 
-        /* --- BUTONLAR (Geri ve Canlı Gör) --- */
-        .top-buttons {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 20px;
+        .container {
+            width: 100%; max-width: 500px; background: var(--glass-dark);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 215, 0, 0.2); border-radius: 35px; padding: 40px;
+            box-shadow: 0 0 50px rgba(0, 80, 255, 0.1); position: relative;
         }
 
         .back-btn {
-            text-decoration: none; color: var(--db-gold); font-size: 20px;
+            position: absolute; top: 25px; left: 25px;
+            text-decoration: none; color: var(--db-gold); font-size: 22px;
             transition: 0.3s; opacity: 0.7;
         }
-        .back-btn:hover { opacity: 1; transform: translateX(-3px); }
+        .back-btn:hover { transform: translateX(-3px); opacity: 1; filter: drop-shadow(0 0 5px var(--db-gold)); }
 
-        .view-profile-btn {
-            background: var(--db-gold); color: #000;
-            text-decoration: none; padding: 8px 15px; border-radius: 20px;
-            font-weight: bold; font-size: 14px;
-            display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 4px 10px rgba(255, 215, 0, 0.3);
-            transition: 0.3s;
-        }
-        .view-profile-btn:hover {
-            transform: translateY(-2px); box-shadow: 0 6px 15px rgba(255, 215, 0, 0.5);
-            background: white;
-        }
-
-        /* Başlık ve Resim */
         .header-title {
-            text-align: center; font-family: 'Bangers', cursive; font-size: 38px;
+            text-align: center; font-family: 'Bangers', cursive; font-size: 38px; letter-spacing: 1px; margin: 10px 0 30px 0;
             background: linear-gradient(to right, var(--db-gold), var(--db-orange));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin: 10px 0 30px 0;
+            text-shadow: 0 4px 15px rgba(255, 84, 0, 0.3);
         }
 
         .current-img { 
@@ -82,29 +69,24 @@
             border: 4px solid var(--db-gold); box-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
             display: block; margin: 0 auto;
         }
-        .img-label { text-align: center; font-size: 12px; color: #ccc; margin-top: 10px; margin-bottom: 30px; text-transform: uppercase; }
+        .img-label { text-align: center; font-size: 12px; color: #ccc; margin-top: 10px; margin-bottom: 20px; text-transform: uppercase; }
 
-        /* Inputlar */
         .input-group { margin-bottom: 20px; }
         .label-text { display: block; margin-bottom: 8px; font-size: 13px; color: #bbb; margin-left: 10px; font-weight: 600; }
         .input-wrapper {
             background: rgba(255, 255, 255, 0.08); border-radius: 15px; padding: 5px 20px;
-            display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex; align-items: center; border: 1px solid rgba(255, 255, 255, 0.05); transition: 0.3s;
         }
+        .input-wrapper:focus-within { background: rgba(255, 255, 255, 0.15); border-color: var(--db-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
         .input-wrapper i { color: var(--db-gold); margin-right: 15px; font-size: 18px; }
-        input[type="text"] {
-            border: none; background: transparent; width: 100%; padding: 15px 0;
-            font-family: 'Poppins', sans-serif; font-size: 15px; color: white; outline: none;
-        }
         
-        /* Dosya Yükleme */
+        input[type="text"] { border: none; background: transparent; width: 100%; padding: 15px 0; font-family: 'Poppins', sans-serif; font-size: 15px; color: white; outline: none; }
         input[type="file"]::file-selector-button {
             background: var(--db-orange); border: none; padding: 8px 15px;
             border-radius: 50px; color: white; cursor: pointer; margin-right: 15px;
-            font-weight: bold;
+            font-weight: bold; font-family: 'Poppins', sans-serif;
         }
 
-        /* Kaydet Butonu */
         button.save-btn {
             background: linear-gradient(45deg, var(--db-orange), #ff2600);
             color: white; padding: 18px; border-radius: 15px; border: none; width: 100%;
@@ -112,23 +94,19 @@
             cursor: pointer; margin-top: 15px; transition: 0.3s;
             box-shadow: 0 10px 20px rgba(255, 84, 0, 0.2);
         }
-        button.save-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(255, 84, 0, 0.4); }
+        button.save-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(255, 84, 0, 0.4); }
     </style>
 </head>
 <body>
 
+    <div class="particles"><span></span><span></span><span></span><span></span><span></span></div>
+
     <div class="container">
-        <div class="top-buttons">
-            <a href="/" class="back-btn" title="Ana Sayfaya Dön">
-                <i class="fas fa-home"></i>
-            </a>
+        <a href="/admin/<%= profile.username %>" class="back-btn" title="Geri Dön">
+            <i class="fas fa-chevron-left"></i>
+        </a>
 
-            <a href="/<%= profile.username %>" target="_blank" class="view-profile-btn">
-                Canlı Gör 👀 <i class="fas fa-external-link-alt"></i>
-            </a>
-        </div>
-
-        <h1 class="header-title">PROFİL DÜZENLE</h1>
+        <h1 class="header-title">PROFİL AYARLARI</h1>
 
         <form action="/edit/update" method="POST" enctype="multipart/form-data">
             
@@ -136,27 +114,27 @@
 
             <div class="current-img-area">
                 <img src="<%= profile.resim_url %>" class="current-img" alt="Profil Resmi">
-                <div class="img-label">@<%= profile.username %></div>
+                <div class="img-label">Şu Anki Görünüm</div>
             </div>
 
             <div class="input-group">
                 <span class="label-text">GÖRÜNEN İSİM</span>
                 <div class="input-wrapper">
                     <i class="fas fa-user"></i>
-                    <input type="text" name="ad_soyad" value="<%= profile.ad_soyad %>" required>
+                    <input type="text" name="ad_soyad" value="<%= profile.ad_soyad %>" required placeholder="Adın Soyadın">
                 </div>
             </div>
 
             <div class="input-group">
-                <span class="label-text">BİYOGRAFİ</span>
+                <span class="label-text">BİYOGRAFİ (ALT YAZI)</span>
                 <div class="input-wrapper">
                     <i class="fas fa-pen-nib"></i>
-                    <input type="text" name="biyografi" value="<%= profile.biyografi %>">
+                    <input type="text" name="biyografi" value="<%= profile.biyografi %>" placeholder="Kısa bir söz yaz...">
                 </div>
             </div>
 
             <div class="input-group">
-                <span class="label-text">YENİ RESİM</span>
+                <span class="label-text">YENİ RESİM YÜKLE</span>
                 <div class="input-wrapper">
                     <i class="fas fa-camera"></i>
                     <input type="file" name="profil_resmi" accept="image/*">

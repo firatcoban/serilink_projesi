@@ -77,16 +77,18 @@ db.connect((err) => {
 
 // --- 5. ROTALAR (Link Yönetimi) ---
 
-// ANA SAYFA
+// ANA SAYFA (Landing Page - GÜNCELLENDİ 🔥)
 app.get('/', (req, res) => {
-    res.send(`
-        <div style="text-align:center; font-family:sans-serif; margin-top:50px;">
-            <h1>Serilink'e Hoşgeldiniz! 🚀</h1>
-            <p>Profiller:</p>
-            <a href="/firat" style="font-size:20px; display:block; margin:10px;">/firat</a>
-            <a href="/bugra" style="font-size:20px; display:block; margin:10px;">/bugra</a>
-        </div>
-    `);
+    // Veritabanındaki tüm kullanıcıları çekiyoruz
+    db.query('SELECT * FROM users', (err, results) => {
+        if (err) {
+            console.log(err);
+            res.send("Bir hata oluştu.");
+        } else {
+            // landing.ejs dosyasına kullanıcıları gönderiyoruz
+            res.render('landing', { users: results });
+        }
+    });
 });
 
 // PROFİL GÖRÜNTÜLEME (DİNAMİK)

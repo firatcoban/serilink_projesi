@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Serilink | Bağlantılarını Özgürleştir 🚀</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --dark-bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark-bg);
+            background-image: radial-gradient(circle at 50% 0%, #312e81 0%, var(--dark-bg) 80%);
+            font-family: 'Outfit', sans-serif;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            text-align: center;
+            padding-top: 80px;
+            padding-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(to right, #818cf8, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
+            margin-bottom: 10px;
+        }
+
+        p.subtitle {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto 60px;
+        }
+
+        /* --- Profil Kartları Grid --- */
+        .profiles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .profile-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            group: hover;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(168, 85, 247, 0.5);
+            box-shadow: 0 20px 40px -10px rgba(168, 85, 247, 0.3);
+        }
+
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .profile-card:hover .profile-img {
+            border-color: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .profile-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+        }
+
+        .profile-username {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .visit-btn {
+            margin-top: 20px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            padding: 10px 25px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: 0.3s;
+        }
+
+        .profile-card:hover .visit-btn {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- Footer --- */
+        footer {
+            margin-top: auto;
+            padding: 40px;
+            color: #475569;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Serilink.</h1>
+        <p class="subtitle">Tüm dijital kimliğin tek bir linkte. Modern, hızlı ve sana özel.</p>
+
+        <div class="profiles-grid">
+            <% if (users && users.length > 0) { %>
+                <% users.forEach(user => { %>
+                    <a href="/<%= user.username %>" class="profile-card">
+                        <img src="<%= user.resim_url %>" alt="<%= user.ad_soyad %>" class="profile-img">
+                        <h3 class="profile-name"><%= user.ad_soyad %></h3>
+                        <span class="profile-username">@<%= user.username %></span>
+                        <div class="visit-btn">Profile Git →</div>
+                    </a>
+                <% }); %>
+            <% } else { %>
+                <p style="color: #64748b;">Henüz oluşturulmuş profil yok.</p>
+            <% } %>
+        </div>
+    </div>
+
+    <footer>
+        Designed by Fırat Çoban &copy; 2026
+    </footer>
+
+</body>
+</html>

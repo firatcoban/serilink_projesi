@@ -6,26 +6,25 @@ const multer = require('multer');
 
 const app = express();
 
-// --- 1. AYARLAR ---
+// --- AYARLAR ---
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// --- 2. DOSYA YÜKLEME AYARLARI ---
 const storage = multer.diskStorage({
     destination: function (req, file, cb) { cb(null, './public/images/'); },
     filename: function (req, file, cb) { cb(null, 'profil-' + Date.now() + path.extname(file.originalname)); }
 });
 const upload = multer({ storage: storage });
 
-// --- 3. VERİTABANI BAĞLANTISI ---
-// ⚠️ BİLGİLERİNİ BURAYA GİR (Tırnakları silme!)
+// --- VERİTABANI BAĞLANTISI ---
+// ⚠️ BURAYA CLEVER CLOUD BİLGİLERİNİ GİR
 const db = mysql.createConnection({
-    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',           // Clever Cloud Host
-    user: 'uzzt3cxlzejgx2x3',           // Clever Cloud User
-    password: 'cI3z7JLs2OHiQ23zOj4M',   // Clever Cloud Password (Şifre)
-    database: 'b9jczsecmhesvtz8fkx0',   // Clever Cloud Database Name
+    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',
+    user: 'uzzt3cxlzejgx2x3',
+    password: 'cI3z7JLs2OHiQ23zOj4M',
+    database: 'b9jczsecmhesvtz8fkx0',
     multipleStatements: true
 });
 
@@ -33,8 +32,7 @@ db.connect((err) => {
     if (err) { console.error('❌ Bağlantı Hatası:', err.message); return; }
     console.log('✅ Veritabanına Bağlandı!');
     
-    // --- 4. SAAS TABLOLARI VE GÜNCELLEME ---
-    // Buradaki kod, tablolar yoksa oluşturur, varsa kullanıcını 'BuGüzelsoy' yapar.
+    // Tabloları oluştur (Sadece yoksa)
     const saasSQL = `
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT PRIMARY KEY,
@@ -43,7 +41,6 @@ db.connect((err) => {
             biyografi TEXT,
             resim_url TEXT
         );
-
         CREATE TABLE IF NOT EXISTS links (
             id INT AUTO_INCREMENT PRIMARY KEY,
             user_id INT,
@@ -53,67 +50,65 @@ db.connect((err) => {
             tiklanma_sayisi INT DEFAULT 0,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
-
-        -- FIRAT KULLANICISI (Eğer yoksa ekle) --
-        INSERT INTO users (id, username, ad_soyad, biyografi, resim_url) 
-        VALUES (1, 'firat', 'Fırat Çoban', 'SaaS Kurucusu & Yazılımcı', '/images/logo.jpg')
-        ON DUPLICATE KEY UPDATE ad_soyad='Fırat Çoban';
-
-        -- BUĞRA KULLANICISI (İsmi 'BuGüzelsoy' Olarak Güncelliyoruz) --
-        INSERT INTO users (id, username, ad_soyad, biyografi, resim_url) 
-        VALUES (2, 'BuGüzelsoy', 'Buğra Güzelsoy', 'Girişimci & İçerik Üreticisi', 'https://via.placeholder.com/150')
-        ON DUPLICATE KEY UPDATE username='BuGüzelsoy', ad_soyad='Buğra Güzelsoy';
     `;
-    
-    db.query(saasSQL, (err) => {
-        if(err) console.log("Tablo/Kullanıcı Oluşturma Hatası:", err);
-        else console.log("✅ Tablolar ve Kullanıcılar Hazır!");
-    });
+    db.query(saasSQL);
 });
 
-// --- 5. ROTALAR ---
+// --- ROTALAR ---
 
-// ANA SAYFA (Landing Page)
+// 1. ANA SAYFA
 app.get('/', (req, res) => {
     db.query('SELECT * FROM users', (err, results) => {
-        if (err) {
-            // Hatayı ekrana basıyoruz ki nedenini görelim
-            console.log(err);
-            res.send("<h1>Veritabanı Hatası:</h1><pre>" + err.message + "</pre>");
+        if (err) res.send("Hata");
+        else res.render('landing', { users: results });
+    });
+});
+
+// 2. PROFİL DÜZENLEME PANELİ (YENİ 🔥)
+// Örn: /edit/BuGüzelsoy yazınca Buğra'nın paneli açılır
+app.get('/edit/:username', (req, res) => {
+    const kadi = req.params.username;
+    db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, result) => {
+        if (result.length > 0) {
+            res.render('profile', { profile: result[0] });
         } else {
-            // Eğer landing.ejs yoksa basit bir liste göster (Güvenlik önlemi)
-            res.render('landing', { users: results }, (err, html) => {
-                if (err) {
-                    console.log("Landing render hatası:", err);
-                    res.send("<h1>Landing Sayfası Bulunamadı!</h1><p>views klasöründe landing.ejs olduğundan emin ol.</p>");
-                } else {
-                    res.send(html);
-                }
-            });
+            res.send("Kullanıcı bulunamadı!");
         }
     });
 });
 
-// PROFİL GÖRÜNTÜLEME
+// 3. PROFİL GÜNCELLEME İŞLEMİ (POST)
+app.post('/edit/update', upload.single('profil_resmi'), (req, res) => {
+    const { ad_soyad, biyografi, hidden_username } = req.body; // hidden_username formdan gelecek
+    
+    let yeniResimYolu = req.file ? '/images/' + req.file.filename : null;
+    
+    let sql = yeniResimYolu ? 
+        "UPDATE users SET ad_soyad = ?, biyografi = ?, resim_url = ? WHERE username = ?" : 
+        "UPDATE users SET ad_soyad = ?, biyografi = ? WHERE username = ?";
+        
+    let params = yeniResimYolu ? 
+        [ad_soyad, biyografi, yeniResimYolu, hidden_username] : 
+        [ad_soyad, biyografi, hidden_username];
+
+    db.query(sql, params, () => {
+        res.redirect('/edit/' + hidden_username); // İşlem bitince tekrar panele dön
+    });
+});
+
+// 4. CANLI PROFİL GÖRÜNTÜLEME
 app.get('/:kullaniciadi', (req, res) => {
     const kadi = req.params.kullaniciadi;
-
     db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {
-        if (err) { return res.send("Veritabanı hatası: " + err.message); }
-        
-        if (userResult.length === 0) {
-            return res.send("<h1 style='text-align:center; margin-top:50px;'>Böyle bir kullanıcı yok! 😕</h1>");
-        }
-
+        if (err || userResult.length === 0) return res.send("Kullanıcı yok.");
         const user = userResult[0];
-
         db.query('SELECT * FROM links WHERE user_id = ? ORDER BY id DESC', [user.id], (err, linkResult) => {
             res.render('index', { profile: user, links: linkResult });
         });
     });
 });
 
-// YÖNLENDİRME
+// 5. LİNK YÖNLENDİRME
 app.get('/git/:id', (req, res) => {
     db.query("UPDATE links SET tiklanma_sayisi = tiklanma_sayisi + 1 WHERE id = ?", [req.params.id], () => {
         db.query("SELECT url FROM links WHERE id = ?", [req.params.id], (err, rows) => {

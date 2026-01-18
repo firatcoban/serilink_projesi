@@ -4,20 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil Düzenle | <%= profile.ad_soyad %> 🔥</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --db-orange: #FF5400; --db-gold: #FFD700; --db-dark-blue: #051c3b; --glass-dark: rgba(5, 28, 59, 0.65); }
-        body { background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%); min-height: 100vh; font-family: 'Poppins', sans-serif; margin: 0; padding: 40px 20px; display: flex; justify-content: center; align-items: center; color: white; cursor: url('/images/dragonball_cloudy.png') 16 16, auto; overflow-x: hidden; }
+        body { background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%); min-height: 100vh; font-family: 'Poppins', sans-serif; margin: 0; padding: 40px 20px; display: flex; justify-content: center; align-items: center; color: white; cursor: url('/images/dragonball_cloudy.png') 16 16, auto; }
         body::before { content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vw; height: 80vh; background-image: url('/images/shenron.png'); background-repeat: no-repeat; background-position: center; background-size: contain; opacity: 0.1; z-index: -1; pointer-events: none; filter: grayscale(100%); }
-        .particles span { position: absolute; display: block; background-size: contain; background-repeat: no-repeat; bottom: -20vh; animation: floatUp ease-in-out infinite; opacity: 0; }
-        @keyframes floatUp { 0% { opacity: 0; bottom: -20vh; } 50% { opacity: 1; } 100% { bottom: 100vh; opacity: 0; } }
-        .particles span:nth-child(1){ background-image: url('/images/dragonball_1.png'); left: 10%; width: 45px; height: 45px; animation-duration: 18s; }
         .container { width: 100%; max-width: 500px; background: var(--glass-dark); backdrop-filter: blur(15px); border: 2px solid rgba(255, 215, 0, 0.2); border-radius: 35px; padding: 40px; position: relative; }
-        
-        .back-btn { position: absolute; top: 25px; left: 25px; color: var(--db-gold); font-size: 22px; text-decoration: none; transition:0.3s;}
-        .back-btn:hover { transform: scale(1.2); }
-        
+        .back-btn { position: absolute; top: 25px; left: 25px; color: var(--db-gold); font-size: 22px; text-decoration: none; }
         .header-title { text-align: center; font-family: 'Bangers'; font-size: 38px; background: linear-gradient(to right, var(--db-gold), var(--db-orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .current-img { width: 130px; height: 130px; border-radius: 50%; border: 4px solid var(--db-gold); display: block; margin: 0 auto; object-fit: cover; }
         .input-wrapper { background: rgba(255,255,255,0.08); border-radius: 15px; padding: 5px 20px; display: flex; align-items: center; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
@@ -26,24 +20,17 @@
     </style>
 </head>
 <body>
-    <div class="particles"><span></span></div>
     <div class="container">
         <a href="/admin/<%= profile.username %>" class="back-btn"><i class="fas fa-chevron-left"></i></a>
-        
         <h1 class="header-title">PROFİL AYARLARI</h1>
-        <p style="text-align:center; color:#ccc;"><%= profile.ad_soyad %></p>
-
         <form action="/edit/update" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="hidden_username" value="<%= profile.username %>">
-
             <div style="text-align:center; margin-bottom:20px;">
                 <img src="<%= profile.resim_url %>" class="current-img">
             </div>
-
             <div class="input-wrapper"><i class="fas fa-user" style="color:#FFD700; margin-right:15px;"></i><input type="text" name="ad_soyad" value="<%= profile.ad_soyad %>"></div>
             <div class="input-wrapper"><i class="fas fa-pen-nib" style="color:#FFD700; margin-right:15px;"></i><input type="text" name="biyografi" value="<%= profile.biyografi %>"></div>
             <div class="input-wrapper"><i class="fas fa-camera" style="color:#FFD700; margin-right:15px;"></i><input type="file" name="profil_resmi"></div>
-
             <button type="submit" class="save-btn">KAYDET VE GÜNCELLE 🔥</button>
         </form>
     </div>

@@ -125,8 +125,7 @@ app.get('/onar', async (req, res) => {
         );
     `;
 
-    // 2. Şifre Sütununu ZORLA Ekle (IF NOT EXISTS kullanmadan)
-    // Eğer zaten varsa hata verir, biz o hatayı yoksayacağız.
+    // 2. Şifre Sütununu ZORLA Ekle (IF NOT EXISTS kullanmadan - Eski sürüm uyumlu)
     const addColumn = "ALTER TABLE users ADD password VARCHAR(255)";
 
     db.query(createTable, (err1) => {
@@ -134,8 +133,8 @@ app.get('/onar', async (req, res) => {
 
         // Sütunu eklemeyi dene
         db.query(addColumn, (err2) => {
-            // Hata olsa bile (Duplicate column hatası) devam ediyoruz.
-            // Çünkü amaç sütunun orada olduğundan emin olmak.
+            // Hata olsa bile (Sütun zaten varsa hata verir) devam ediyoruz.
+            // Önemli olan sütunun orada olması.
             
             // Kullanıcıları ekle/güncelle
             const insertUser = `INSERT INTO users (username, ad_soyad, password, resim_url) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE password = VALUES(password)`;

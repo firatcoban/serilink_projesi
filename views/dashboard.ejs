@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Dragon Ball Z 🔥</title>
+    <title>Panel | <%= user.ad_soyad %> 🔥</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
@@ -27,7 +27,7 @@
             color: white;
         }
 
-        /* ARKA PLAN SHENRON */
+        /* ARKA PLAN SHENRON (Karanlık Mod) */
         body::before {
             content: "";
             position: fixed; top: 50%; left: 50%;
@@ -42,7 +42,7 @@
             filter: grayscale(100%);
         }
 
-        /* TOP ANİMASYONU */
+        /* UÇUŞAN TOPLAR */
         .particles span { position: absolute; display: block; background-size: contain; background-repeat: no-repeat; bottom: -100px; animation: rise 20s linear infinite; opacity: 0.8; }
         .particles span:nth-child(1){ background-image: url('/images/dragonball_1.png'); left: 5%; width: 35px; height: 35px; animation-duration: 15s; }
         .particles span:nth-child(2){ background-image: url('/images/dragonball_2.png'); left: 25%; width: 25px; height: 25px; animation-duration: 22s; }
@@ -51,7 +51,7 @@
         .particles span:nth-child(5){ background-image: url('/images/dragonball_7.png'); left: 90%; width: 50px; height: 50px; animation-delay: 2s; }
         @keyframes rise { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-120vh) rotate(360deg); } }
 
-        /* ANA PANEL KUTUSU */
+        /* ANA KUTU (CAM EFEKTİ) */
         .admin-container {
             width: 100%; max-width: 550px;
             background: var(--glass-dark);
@@ -72,7 +72,7 @@
         }
         .header-desc { text-align: center; font-size: 14px; opacity: 0.7; margin-top: 5px; margin-bottom: 35px; color: #ccc; }
 
-        /* FORM */
+        /* INPUTLAR (Karanlık Uyumlu) */
         .input-wrapper {
             background: rgba(255, 255, 255, 0.08);
             border-radius: 15px; padding: 5px 20px;
@@ -103,7 +103,7 @@
         }
         .add-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(255, 84, 0, 0.4); }
 
-        /* LİSTE */
+        /* LİSTE KARTLARI */
         .link-listesi { margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
 
         .link-kart {
@@ -134,15 +134,17 @@
         .delete-btn:hover { background: #ff4444; color: white; transform: rotate(90deg); }
 
         /* --- ÜST BUTONLAR --- */
-        .view-site, .profile-settings {
+        .top-btn {
             position: absolute; top: 25px;
             text-decoration: none; color: var(--db-gold); font-size: 22px;
-            transition: 0.3s; opacity: 0.6;
+            transition: 0.3s; opacity: 0.6; z-index: 10;
         }
-        .view-site { right: 25px; }
-        .profile-settings { left: 25px; }
         
-        .view-site:hover, .profile-settings:hover { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 5px var(--db-gold)); }
+        .profile-settings { left: 25px; } /* Sol Üst */
+        .view-site { right: 25px; } /* Sağ Üst */
+        .back-to-admin { left: 75px; } /* Kumanda'ya Dön */
+
+        .top-btn:hover { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 5px var(--db-gold)); }
 
     </style>
 </head>
@@ -154,11 +156,15 @@
 
     <div class="admin-container">
         
-        <a href="/profile" class="profile-settings" title="Profili Düzenle">
+        <a href="/profile/<%= user.username %>" class="top-btn profile-settings" title="Profili Düzenle">
             <i class="fas fa-user-cog"></i>
         </a>
 
-        <a href="/" target="_blank" class="view-site" title="Siteyi Ziyaret Et">
+        <a href="/admin" class="top-btn back-to-admin" title="Kullanıcı Seç">
+            <i class="fas fa-users"></i>
+        </a>
+
+        <a href="/<%= user.username %>" target="_blank" class="top-btn view-site" title="Siteyi Ziyaret Et">
             <i class="fas fa-meteor"></i>
         </a>
 
@@ -166,6 +172,8 @@
         <div class="header-desc">Karanlık tarafa hoş geldin... 🌑</div>
 
         <form action="/add" method="POST">
+            <input type="hidden" name="hidden_username" value="<%= user.username %>">
+
             <div class="input-wrapper">
                 <i class="fas fa-dragon"></i>
                 <select name="platform">
@@ -211,7 +219,7 @@
                             <span class="emoji">👆</span> <%= link.tiklanma_sayisi || 0 %>
                         </div>
 
-                        <a href="/delete/<%= link.id %>" class="delete-btn" onclick="return confirm('Silmek istiyor musun?')">
+                        <a href="/delete/<%= link.id %>?u=<%= user.username %>" class="delete-btn" onclick="return confirm('Silmek istiyor musun?')">
                             <i class="fas fa-trash-alt"></i>
                         </a>
                     </div>

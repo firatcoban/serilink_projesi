@@ -4,57 +4,135 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel | <%= user.ad_soyad %> 🔥</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    
     <style>
         :root { --db-orange: #FF5400; --db-gold: #FFD700; --db-dark-blue: #051c3b; --glass-dark: rgba(5, 28, 59, 0.65); }
-        body { background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%); min-height: 100vh; font-family: 'Poppins', sans-serif; margin: 0; padding: 40px 20px; display: flex; justify-content: center; color: white; cursor: url('/images/dragonball_cloudy.png') 16 16, auto; }
-        body::before { content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vw; height: 80vh; background-image: url('/images/shenron.png'); background-repeat: no-repeat; background-position: center; background-size: contain; opacity: 0.1; z-index: -1; pointer-events: none; filter: grayscale(100%); }
-        .admin-container { width: 100%; max-width: 550px; background: var(--glass-dark); backdrop-filter: blur(15px); border: 2px solid rgba(255, 215, 0, 0.2); border-radius: 35px; padding: 35px; position: relative; }
-        .header-title { text-align: center; font-family: 'Bangers'; font-size: 42px; background: linear-gradient(to right, var(--db-gold), var(--db-orange)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; }
-        .top-btn { position: absolute; top: 25px; color: var(--db-gold); font-size: 22px; transition: 0.3s; opacity: 0.7; z-index:10; text-decoration: none;}
+        
+        body { 
+            background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%); 
+            min-height: 100vh; font-family: 'Poppins', sans-serif; 
+            margin: 0; padding: 40px 20px; 
+            display: flex; justify-content: center; 
+            color: white; cursor: url('/images/dragonball_cloudy.png') 16 16, auto; 
+        }
+        
+        body::before { 
+            content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            width: 80vw; height: 80vh; background-image: url('/images/shenron.png'); 
+            background-repeat: no-repeat; background-position: center; background-size: contain; 
+            opacity: 0.1; z-index: -1; pointer-events: none; filter: grayscale(100%); 
+        }
+        
+        .admin-container { 
+            width: 100%; max-width: 550px; background: var(--glass-dark); 
+            backdrop-filter: blur(15px); border: 2px solid rgba(255, 215, 0, 0.2); 
+            border-radius: 35px; padding: 35px; position: relative; 
+        }
+        
+        .header-title { 
+            text-align: center; font-family: 'Bangers'; font-size: 42px; 
+            background: linear-gradient(to right, var(--db-gold), var(--db-orange)); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; 
+        }
+        
+        /* ÜST BUTONLAR */
+        .top-btn { 
+            position: absolute; top: 25px; color: var(--db-gold); 
+            font-size: 22px; transition: 0.3s; opacity: 0.7; z-index:10; text-decoration: none;
+        }
         .top-btn:hover { transform: scale(1.2); opacity: 1; }
+        
         .profile-settings { left: 25px; } 
         .view-site { right: 25px; }
-        .back-to-admin { left: 75px; }
-        .input-wrapper { background: rgba(255,255,255,0.08); border-radius: 15px; padding: 10px 20px; margin-bottom: 15px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); }
-        input, select { border: none; background: transparent; width: 100%; color: white; font-family: 'Poppins'; font-size: 15px; outline: none; }
-        .add-btn { background: linear-gradient(45deg, var(--db-orange), #ff2600); width: 100%; padding: 15px; border-radius: 15px; border: none; color: white; font-family: 'Bangers'; font-size: 22px; cursor: pointer; }
-        .link-kart { background: rgba(255,255,255,0.95); padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; color: #333; margin-bottom: 10px; border-left: 5px solid var(--db-orange); }
-        .counter { background: var(--db-dark-blue); color: var(--db-gold); padding: 5px 10px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-right: 10px; }
+        .logout-btn { left: 75px; color: #ff4444; } /* Çıkış butonu kırmızı */
+
+        .input-wrapper { 
+            background: rgba(255,255,255,0.08); border-radius: 15px; padding: 10px 20px; 
+            margin-bottom: 15px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); 
+        }
+        
+        input, select { 
+            border: none; background: transparent; width: 100%; color: white; 
+            font-family: 'Poppins'; font-size: 15px; outline: none; 
+        }
+        
+        select option { background-color: #000; color: white; } /* Select içi karanlık */
+
+        .add-btn { 
+            background: linear-gradient(45deg, var(--db-orange), #ff2600); width: 100%; 
+            padding: 15px; border-radius: 15px; border: none; color: white; 
+            font-family: 'Bangers'; font-size: 22px; cursor: pointer; 
+        }
+        
+        .link-kart { 
+            background: rgba(255,255,255,0.95); padding: 15px; border-radius: 15px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            color: #333; margin-bottom: 10px; border-left: 5px solid var(--db-orange); 
+        }
+        
+        .counter { 
+            background: var(--db-dark-blue); color: var(--db-gold); padding: 5px 10px; 
+            border-radius: 8px; font-weight: bold; font-size: 14px; margin-right: 10px; 
+        }
+        
         .delete-btn { color: #ff4444; font-size: 18px; }
     </style>
 </head>
 <body>
     <div class="admin-container">
-        <a href="/profile/<%= user.username %>" class="top-btn profile-settings" title="Profili Düzenle"><i class="fas fa-user-cog"></i></a>
-        <a href="/admin" class="top-btn back-to-admin" title="Kullanıcı Seç"><i class="fas fa-users"></i></a>
-        <a href="/<%= user.username %>" target="_blank" class="top-btn view-site" title="Siteyi Gör"><i class="fas fa-meteor"></i></a>
+        <a href="/profile" class="top-btn profile-settings" title="Profili Düzenle">
+            <i class="fas fa-user-cog"></i>
+        </a>
+        
+        <a href="/logout" class="top-btn logout-btn" title="Güvenli Çıkış">
+            <i class="fas fa-sign-out-alt"></i>
+        </a>
+
+        <a href="/<%= user.username %>" target="_blank" class="top-btn view-site" title="Siteyi Gör">
+            <i class="fas fa-meteor"></i>
+        </a>
 
         <h1 class="header-title">KONTROL PANELİ</h1>
-        <p style="text-align:center; color:#ccc; margin-bottom:30px;"><%= user.ad_soyad %></p>
+        <p style="text-align:center; color:#ccc; margin-bottom:30px;">Hoş geldin, <%= user.ad_soyad %></p>
 
         <form action="/add" method="POST">
-            <input type="hidden" name="hidden_username" value="<%= user.username %>">
             <div class="input-wrapper"><i class="fas fa-dragon" style="color:gold; margin-right:10px;"></i>
-                <select name="platform"><option value="">İkon Seç...</option><option value="instagram">Instagram</option><option value="youtube">YouTube</option></select>
+                <select name="platform">
+                    <option value="">İkon Seç...</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="x">X (Twitter)</option>
+                    <option value="discord">Discord</option>
+                    <option value="twitch">Twitch</option>
+                    <option value="linkedin">LinkedIn</option>
+                </select>
             </div>
             <div class="input-wrapper"><i class="fas fa-bolt" style="color:gold; margin-right:10px;"></i>
-                <input type="text" name="baslik" placeholder="Başlık" required>
+                <input type="text" name="baslik" placeholder="Başlık (Örn: Abone Ol!)" required>
             </div>
             <div class="input-wrapper"><i class="fas fa-link" style="color:gold; margin-right:10px;"></i>
-                <input type="url" name="url" placeholder="Link" required>
+                <input type="url" name="url" placeholder="Link (https://...)" required>
             </div>
             <button type="submit" class="add-btn">EKLE 🔥</button>
         </form>
 
         <div style="margin-top:30px;">
+            <% if(links.length === 0) { %>
+                <div style="text-align:center; color:rgba(255,255,255,0.5);">Henüz hiç link eklemedin...</div>
+            <% } %>
+
             <% links.forEach(link => { %>
                 <div class="link-kart">
                     <strong><%= link.title %></strong>
                     <div style="display:flex; align-items:center;">
                         <div class="counter">👆 <%= link.tiklanma_sayisi || 0 %></div>
-                        <a href="/delete/<%= link.id %>?u=<%= user.username %>" class="delete-btn" onclick="return confirm('Sil?')"><i class="fas fa-trash"></i></a>
+                        <a href="/delete/<%= link.id %>" class="delete-btn" onclick="return confirm('Silmek istediğine emin misin?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
                     </div>
                 </div>
             <% }); %>

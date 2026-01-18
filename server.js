@@ -3,8 +3,8 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const path = require('path');
 const multer = require('multer');
-const session = require('express-session'); // Oturum yönetimi
-const bcrypt = require('bcryptjs'); // Şifreleme
+const session = require('express-session');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 
@@ -14,12 +14,12 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// --- OTURUM (SESSION) AYARLARI ---
+// OTURUM AYARLARI
 app.use(session({
-    secret: 'cok_gizli_anahtar_kelime_buraya', // Burayı kafana göre değiştirebilirsin
+    secret: 'gizli_anahtar',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 3600000 } // 1 saat oturum açık kalır
+    cookie: { maxAge: 3600000 } // 1 saat
 }));
 
 const storage = multer.diskStorage({
@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- VERİTABANI BAĞLANTISI ---
+// --- VERİTABANI (POOL) ---
 const db = mysql.createPool({
     host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',           
     user: 'uzzt3cxlzejgx2x3',           
@@ -40,10 +40,7 @@ const db = mysql.createPool({
     multipleStatements: true
 });
 
-console.log("✅ Veritabanı Havuzu Hazır.");
-
-// --- GÜVENLİK KONTROLÜ (MIDDLEWARE) ---
-// Giriş yapmamış birini admin paneline sokmamak için
+// GÜVENLİK KONTROLÜ
 const girisZorunlu = (req, res, next) => {
     if (!req.session.userId) {
         return res.redirect('/login');
@@ -53,186 +50,116 @@ const girisZorunlu = (req, res, next) => {
 
 // --- ROTALAR ---
 
-// 1. ANA SAYFA (Landing)
+// 1. ANA SAYFA -> DİREKT LOGİN EKRANINA GİDER
 app.get('/', (req, res) => {
-    db.query('SELECT * FROM users', (err, results) => {
-        // Giriş yapmışsa navbar farklı görünsün diye user bilgisini gönderiyoruz
-        res.render('landing', { users: results, activeUser: req.session.userId });
-    });
+    if (req.session.userId) {
+        res.redirect('/admin'); // Zaten giriş yapmışsa panele
+    } else {
+        res.redirect('/login'); // Yapmamışsa logine
+    }
 });
 
-// 2. KAYIT OL SAYFASI
-app.get('/register', (req, res) => {
-    res.render('register');
-});
-
-// 3. KAYIT İŞLEMİ (POST)
-app.post('/register', async (req, res) => {
-    const { username, ad_soyad, password } = req.body;
-    
-    // Şifreyi şifrele (Hash)
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const defaultResim = '/images/logo.jpg'; 
-
-    db.query('INSERT INTO users (username, ad_soyad, password, resim_url) VALUES (?, ?, ?, ?)', 
-    [username, ad_soyad, hashedPassword, defaultResim], (err, result) => {
-        if (err) {
-            console.log(err);
-            return res.send(`<h1>Hata: Kullanıcı adı alınmış olabilir.</h1><a href="/register">Geri Dön</a>`);
-        }
-        res.redirect('/login');
-    });
-});
-
-// 4. GİRİŞ YAP SAYFASI
+// 2. GİRİŞ YAP
 app.get('/login', (req, res) => {
     res.render('login');
 });
 
-// 5. GİRİŞ İŞLEMİ (POST)
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-
     db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
-        if (results.length === 0) {
-            return res.send('<h1>Kullanıcı bulunamadı!</h1><a href="/login">Tekrar Dene</a>');
-        }
-
-        const user = results[0];
-        // Şifre kontrolü
-        const match = await bcrypt.compare(password, user.password);
-
-        if (match) {
-            // Şifre doğruysa oturumu başlat
-            req.session.userId = user.id;
-            req.session.username = user.username;
-            req.session.ad_soyad = user.ad_soyad;
-            res.redirect('/admin'); // Direkt panele at
+        if (results.length > 0) {
+            const user = results[0];
+            const match = await bcrypt.compare(password, user.password);
+            if (match) {
+                req.session.userId = user.id;
+                res.redirect('/admin'); // Şifre doğruysa "İki Butonlu" ekrana git
+            } else {
+                res.send('<h1>Şifre Yanlış</h1><a href="/login">Geri</a>');
+            }
         } else {
-            res.send('<h1>Şifre Yanlış!</h1><a href="/login">Tekrar Dene</a>');
+            res.send('<h1>Kullanıcı Yok</h1><a href="/login">Geri</a>');
         }
     });
 });
 
-// 6. ÇIKIŞ YAP
+// 3. KAYIT OL
+app.get('/register', (req, res) => { res.render('register'); });
+app.post('/register', async (req, res) => {
+    const { username, ad_soyad, password } = req.body;
+    const hashed = await bcrypt.hash(password, 10);
+    db.query('INSERT INTO users (username, ad_soyad, password, resim_url) VALUES (?, ?, ?, ?)', 
+        [username, ad_soyad, hashed, '/images/logo.jpg'], 
+        () => res.redirect('/login'));
+});
+
+// 4. ÇIKIŞ
 app.get('/logout', (req, res) => {
-    req.session.destroy(() => {
-        res.redirect('/');
-    });
+    req.session.destroy(() => res.redirect('/login'));
 });
 
-// 7. SİSTEMİ ONAR (Şifre sütunu eklemek için)
-app.get('/onar', async (req, res) => {
-    // Varsayılan şifre: 123456
-    const defaultHash = await bcrypt.hash("123456", 10);
-    
-    const sql = `
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(50) UNIQUE NOT NULL,
-            ad_soyad VARCHAR(100),
-            password VARCHAR(255),
-            biyografi TEXT,
-            resim_url TEXT
-        );
-        CREATE TABLE IF NOT EXISTS links (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            user_id INT,
-            title VARCHAR(255),
-            url TEXT,
-            platform VARCHAR(50) DEFAULT 'web',
-            tiklanma_sayisi INT DEFAULT 0,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        );
-        
-        -- Eğer password sütunu yoksa ekle (Eski tablolar için)
-        SET @dbname = DATABASE();
-        SET @tablename = "users";
-        SET @columnname = "password";
-        SET @preparedStatement = (SELECT IF(
-          (
-            SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS
-            WHERE
-              (table_name = @tablename)
-              AND (table_schema = @dbname)
-              AND (column_name = @columnname)
-          ) > 0,
-          "SELECT 1",
-          "ALTER TABLE users ADD password VARCHAR(255);"
-        ));
-        PREPARE alterIfNotExists FROM @preparedStatement;
-        EXECUTE alterIfNotExists;
-        DEALLOCATE PREPARE alterIfNotExists;
-
-        -- Varsayılan kullanıcıları güncelle (Şifreleri 123456 yap)
-        INSERT INTO users (id, username, ad_soyad, password, resim_url) VALUES 
-        (1, 'admin', 'Kontrol Paneli', '${defaultHash}', '/images/logo.jpg'),
-        (2, 'BuGüzelsoy', 'Buğra Güzelsoy', '${defaultHash}', '/images/logo.jpg')
-        ON DUPLICATE KEY UPDATE password='${defaultHash}';
-    `;
-    
-    db.query(sql, (err) => {
-        if(err) res.send("Hata: " + err.message);
-        else res.send("<h1>✅ Sistem Güvenliği Güncellendi!</h1><p>Şifre sütunları eklendi. Varsayılan şifre: 123456</p><a href='/login'>Giriş Yap</a>");
-    });
-});
-
-// 8. ADMİN PANELİ (ARTIK KORUMALI 🛡️)
-// Sadece giriş yapanlar görebilir
+// 5. KUMANDA MERKEZİ (İKİ BUTONLU EKRAN) 🔥
 app.get('/admin', girisZorunlu, (req, res) => {
-    const userId = req.session.userId;
-    
-    db.query('SELECT * FROM users WHERE id = ?', [userId], (err, userResult) => {
+    // Tüm kullanıcıları çekip buton olarak göstereceğiz
+    db.query('SELECT * FROM users', (err, results) => {
+        res.render('admin', { users: results });
+    });
+});
+
+// 6. DASHBOARD (LİNKLER)
+app.get('/admin/:username', girisZorunlu, (req, res) => {
+    // Seçilen kullanıcının paneli açılır
+    const kadi = req.params.username;
+    db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {
+        if (!userResult.length) return res.send("Kullanıcı yok.");
         const user = userResult[0];
-        db.query('SELECT * FROM links WHERE user_id = ? ORDER BY id DESC', [userId], (err, links) => {
-            // Dashboard'a giriş yapan kullanıcının verilerini gönder
+        db.query('SELECT * FROM links WHERE user_id = ? ORDER BY id DESC', [user.id], (err, links) => {
             res.render('dashboard', { user: user, links: links });
         });
     });
 });
 
-// 9. PROFİL AYARLARI (KORUMALI)
-app.get('/profile', girisZorunlu, (req, res) => {
-    const userId = req.session.userId;
-    db.query('SELECT * FROM users WHERE id = ?', [userId], (err, result) => {
+// 7. PROFİL AYARLARI
+app.get('/profile/:username', girisZorunlu, (req, res) => {
+    const kadi = req.params.username;
+    db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, result) => {
         res.render('profile', { profile: result[0] });
     });
 });
 
-// 10. İŞLEMLER (Link Ekle/Sil/Güncelle - Sadece kendi hesabına)
+// --- İŞLEMLER ---
 app.post('/add', girisZorunlu, (req, res) => {
-    const { baslik, url, platform } = req.body;
-    const userId = req.session.userId; // Giriş yapan kişi
+    const { baslik, url, platform, hidden_username } = req.body;
     let cleanUrl = (url.startsWith('http')) ? url : 'https://' + url;
-    
-    db.query("INSERT INTO links (user_id, title, url, platform) VALUES (?, ?, ?, ?)", 
-        [userId, baslik, cleanUrl, platform || 'web'], 
-        () => res.redirect('/admin'));
+    db.query('SELECT id FROM users WHERE username = ?', [hidden_username], (err, result) => {
+        db.query("INSERT INTO links (user_id, title, url, platform) VALUES (?, ?, ?, ?)", 
+            [result[0].id, baslik, cleanUrl, platform || 'web'], 
+            () => res.redirect('/admin/' + hidden_username));
+    });
 });
 
 app.post('/edit/update', girisZorunlu, upload.single('profil_resmi'), (req, res) => {
-    const { ad_soyad, biyografi } = req.body;
-    const userId = req.session.userId;
+    const { ad_soyad, biyografi, hidden_username } = req.body;
     let yeniResimYolu = req.file ? '/images/' + req.file.filename : null;
-    
     let sql = yeniResimYolu ? 
-        "UPDATE users SET ad_soyad = ?, biyografi = ?, resim_url = ? WHERE id = ?" : 
-        "UPDATE users SET ad_soyad = ?, biyografi = ? WHERE id = ?";
-    let params = yeniResimYolu ? [ad_soyad, biyografi, yeniResimYolu, userId] : [ad_soyad, biyografi, userId];
-    db.query(sql, params, () => res.redirect('/profile'));
+        "UPDATE users SET ad_soyad = ?, biyografi = ?, resim_url = ? WHERE username = ?" : 
+        "UPDATE users SET ad_soyad = ?, biyografi = ? WHERE username = ?";
+    let params = yeniResimYolu ? [ad_soyad, biyografi, yeniResimYolu, hidden_username] : [ad_soyad, biyografi, hidden_username];
+    db.query(sql, params, () => res.redirect('/profile/' + hidden_username));
 });
 
 app.get('/delete/:id', girisZorunlu, (req, res) => {
-    // Sadece kendi linkini silebilirsin kontrolü
-    db.query('DELETE FROM links WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId], 
-        () => res.redirect('/admin'));
+    const username = req.query.u; 
+    db.query('DELETE FROM links WHERE id = ?', [req.params.id], () => res.redirect('/admin/' + username));
 });
 
-// 11. CANLI PROFİL (Herkese Açık)
+// 8. ZİYARETÇİ PROFİLİ (Login gerekmez)
 app.get('/:kullaniciadi', (req, res) => {
     const kadi = req.params.kullaniciadi;
+    // Eğer admin, login, register gibi sistem sayfalarıysa çakışmayı önle
+    if(['admin', 'login', 'register', 'logout', 'add', 'edit', 'delete'].includes(kadi)) return;
+
     db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {
-        if (!userResult.length) return res.send("Kullanıcı yok.");
+        if (!userResult.length) return res.send("Kullanıcı bulunamadı.");
         const user = userResult[0];
         db.query('SELECT * FROM links WHERE user_id = ? ORDER BY id DESC', [user.id], (err, linkResult) => {
             res.render('index', { profile: user, links: linkResult });
@@ -240,7 +167,6 @@ app.get('/:kullaniciadi', (req, res) => {
     });
 });
 
-// 12. YÖNLENDİRME
 app.get('/git/:id', (req, res) => {
     db.query("UPDATE links SET tiklanma_sayisi = tiklanma_sayisi + 1 WHERE id = ?", [req.params.id], () => {
         db.query("SELECT url FROM links WHERE id = ?", [req.params.id], (err, rows) => {
@@ -251,4 +177,4 @@ app.get('/git/:id', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Güvenli Sunucu Başladı!`));
+app.listen(PORT, () => console.log(`🚀 Sistem Başladı!`));

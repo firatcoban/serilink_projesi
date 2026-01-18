@@ -6,13 +6,13 @@ const multer = require('multer');
 
 const app = express();
 
-// --- AYARLAR ---
+// --- 1. AYARLAR ---
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// --- DOSYA YÜKLEME ---
+// --- 2. DOSYA YÜKLEME AYARLARI ---
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, './public/images/');
@@ -23,19 +23,25 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- VERİTABANI BAĞLANTISI ---
+// --- 3. VERİTABANI BAĞLANTISI (İNTERNET/CLOUD) ---
+// BURADAKİ BİLGİLERİ CLEVER CLOUD PANELİNDEN ALIP YAPIŞTIR
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '', 
-    database: 'firat',
+    host: 'BURAYA_HOST_YAZ',           // Örn: uys...clever-cloud.com
+    user: 'BURAYA_USER_YAZ',           // Örn: uqh2...
+    password: 'BURAYA_PASSWORD_YAZ',   // Örn: H2s... (Panelde gizliyse 'göz' ikonuna bas)
+    database: 'BURAYA_DATABASE_YAZ',   // Örn: be9... (Database Name)
     multipleStatements: true
 });
 
 db.connect((err) => {
-    if (err) { console.error('❌ Bağlantı Hatası!', err.message); return; }
-    console.log('✅ Veritabanına Bağlandı!');
+    if (err) { 
+        console.error('❌ Bağlantı Hatası!', err.message); 
+        return; 
+    }
+    console.log('✅ İnternet Veritabanına (Cloud) Bağlandı!');
     
+    // --- TABLOLARI OTOMATİK OLUŞTUR ---
+    // Clever Cloud veritabanın boş olduğu için bu kod tabloları senin için yaratacak.
     const kurulumSQL = `
         CREATE TABLE IF NOT EXISTS profile (
             id INT PRIMARY KEY, ad_soyad VARCHAR(100), biyografi TEXT, resim_url TEXT
@@ -47,15 +53,19 @@ db.connect((err) => {
         INSERT IGNORE INTO profile (id, ad_soyad, biyografi, resim_url) 
         VALUES (1, 'Fırat Çoban', 'Yazılım ve Teknoloji', '/images/logo.jpg');
     `;
-    db.query(kurulumSQL);
+    db.query(kurulumSQL, (err) => {
+        if(err) console.log("Tablo Oluşturma Hatası:", err);
+        else console.log("✅ Tablolar Hazırlandı.");
+    });
 });
 
-// --- ROTALAR ---
+// --- 4. ROTALAR ---
 
-// 1. ANA SAYFA
+// ANA SAYFA
 app.get('/', (req, res) => {
     db.query('SELECT * FROM profile WHERE id = 1', (err, profileResult) => {
         db.query('SELECT * FROM links ORDER BY id DESC', (err, linkResult) => {
+            if (err) { console.log(err); res.send("Veritabanı hatası"); return; }
             res.render('index', { 
                 links: linkResult,
                 profile: profileResult[0] || { ad_soyad: 'Admin', biyografi: '', resim_url: '/images/logo.jpg' }
@@ -64,7 +74,7 @@ app.get('/', (req, res) => {
     });
 });
 
-// 2. PROFİL SAYFASI
+// PROFİL DÜZENLEME
 app.get('/profile', (req, res) => {
     db.query('SELECT * FROM profile WHERE id = 1', (err, result) => {
         res.render('profile', { profile: result[0] || {} });
@@ -81,28 +91,24 @@ app.post('/profile/update', upload.single('profil_resmi'), (req, res) => {
     db.query(sql, params, () => res.redirect('/profile'));
 });
 
-// 3. ADMİN PANELİ
+// ADMİN PANELİ
 app.get('/admin', (req, res) => {
     db.query('SELECT * FROM links ORDER BY id DESC', (err, results) => {
         res.render('dashboard', { links: results });
     });
 });
 
-// 4. İSTATİSTİK SAYFASI (İŞTE EKSİK OLAN KISIM BURADA)
+// İSTATİSTİK SAYFASI
 app.get('/stats', (req, res) => {
     db.query('SELECT * FROM links ORDER BY tiklanma_sayisi DESC', (err, results) => {
-        if (err) {
-            console.log(err);
-            return res.send("Veritabanı hatası!");
-        }
+        if (err) { console.log(err); return res.send("Veritabanı hatası!"); }
         let total = 0;
         results.forEach(link => { total += link.tiklanma_sayisi; });
-        
         res.render('statistics', { links: results, total: total });
     });
 });
 
-// 5. LİNK EKLE/SİL/GİT
+// LİNK EKLEME
 app.post('/add', (req, res) => {
     const { baslik, url, platform } = req.body;
     let cleanUrl = (url.startsWith('http')) ? url : 'https://' + url;
@@ -110,10 +116,12 @@ app.post('/add', (req, res) => {
         [baslik, cleanUrl, platform || 'web'], () => res.redirect('/admin'));
 });
 
+// LİNK SİLME
 app.get('/delete/:id', (req, res) => {
     db.query('DELETE FROM links WHERE id = ?', [req.params.id], () => res.redirect('/admin'));
 });
 
+// YÖNLENDİRME (TIK SAYACI)
 app.get('/git/:id', (req, res) => {
     const id = req.params.id;
     db.query("UPDATE links SET tiklanma_sayisi = tiklanma_sayisi + 1 WHERE id = ?", [id], () => {
@@ -124,5 +132,6 @@ app.get('/git/:id', (req, res) => {
     });
 });
 
-// SUNUCUYU BAŞLAT
-app.listen(3000, () => console.log('🚀 Sunucu: http://localhost:3000'));
+// SUNUCUYU BAŞLAT (Render için port ayarı eklendi)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`🚀 Sunucu Başladı: http://localhost:${PORT}`));

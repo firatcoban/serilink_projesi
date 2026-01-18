@@ -3,76 +3,222 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel | <%= user.ad_soyad %> 🔥</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
+    <title>Admin | Dragon Ball Z 🔥</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
-        :root { --db-orange: #FF5400; --db-blue: #023E8A; --db-gold: #FFD700; --bg-start: #f8931f; --bg-end: #fff4a3; }
-        body { background: linear-gradient(0deg, var(--bg-start) 0%, var(--bg-end) 100%); min-height: 100vh; font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vw; height: 80vh; background-image: url('/images/shenron.png'); background-repeat: no-repeat; background-position: center; background-size: contain; opacity: 0.12; z-index: 0; pointer-events: none; }
-        .admin-container { width: 100%; max-width: 500px; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); border: 2px solid var(--db-blue); border-radius: 25px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); position: relative; z-index: 2; }
-        h1 { font-family: 'Bangers', cursive; font-size: 34px; text-align: center; color: #000; margin-bottom: 25px; }
-        input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 50px; border: 2px solid var(--db-blue); box-sizing: border-box; }
-        .add-btn { background-color: var(--db-orange); color: white; border: none; padding: 14px; width: 100%; border-radius: 50px; font-family: 'Bangers', cursive; font-size: 22px; cursor: pointer; box-shadow: 0 4px 0px #b33c00; transition: 0.2s; }
-        .add-btn:hover { transform: translateY(-2px); }
-        .link-item { background: white; border: 1.5px solid var(--db-blue); border-radius: 20px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .click-badge { background: var(--db-blue); color: var(--db-gold); padding: 5px 10px; border-radius: 20px; font-weight: bold; margin-right: 10px; }
-        .delete-btn { background: #ff4444; color: white; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: bold; text-decoration: none; font-size:12px; }
+        :root {
+            --db-orange: #FF5400;
+            --db-gold: #FFD700;
+            --db-dark-blue: #051c3b;
+            --glass-dark: rgba(5, 28, 59, 0.65);
+        }
+
+        body {
+            background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%);
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            margin: 0; padding: 40px 20px;
+            display: flex; justify-content: center;
+            overflow-x: hidden;
+            cursor: url('/images/dragonball_cloudy.png') 16 16, auto;
+            color: white;
+        }
+
+        /* ARKA PLAN SHENRON */
+        body::before {
+            content: "";
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw; height: 80vh;
+            background-image: url('/images/shenron.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            opacity: 0.1; 
+            z-index: -1; pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        /* TOP ANİMASYONU */
+        .particles span { position: absolute; display: block; background-size: contain; background-repeat: no-repeat; bottom: -100px; animation: rise 20s linear infinite; opacity: 0.8; }
+        .particles span:nth-child(1){ background-image: url('/images/dragonball_1.png'); left: 5%; width: 35px; height: 35px; animation-duration: 15s; }
+        .particles span:nth-child(2){ background-image: url('/images/dragonball_2.png'); left: 25%; width: 25px; height: 25px; animation-duration: 22s; }
+        .particles span:nth-child(3){ background-image: url('/images/dragonball_3.png'); left: 45%; width: 45px; height: 45px; animation-delay: 5s; }
+        .particles span:nth-child(4){ background-image: url('/images/dragonball_4.png'); left: 70%; width: 30px; height: 30px; animation-duration: 18s; }
+        .particles span:nth-child(5){ background-image: url('/images/dragonball_7.png'); left: 90%; width: 50px; height: 50px; animation-delay: 2s; }
+        @keyframes rise { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-120vh) rotate(360deg); } }
+
+        /* ANA PANEL KUTUSU */
+        .admin-container {
+            width: 100%; max-width: 550px;
+            background: var(--glass-dark);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            border-radius: 35px;
+            padding: 35px;
+            box-shadow: 0 0 50px rgba(0, 80, 255, 0.1);
+            position: relative;
+        }
+
+        .header-title {
+            text-align: center; font-family: 'Bangers', cursive;
+            font-size: 42px; letter-spacing: 2px; margin: 0;
+            background: linear-gradient(to right, var(--db-gold), var(--db-orange));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 15px rgba(255, 84, 0, 0.3);
+        }
+        .header-desc { text-align: center; font-size: 14px; opacity: 0.7; margin-top: 5px; margin-bottom: 35px; color: #ccc; }
+
+        /* FORM */
+        .input-wrapper {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px; padding: 5px 20px;
+            display: flex; align-items: center; margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: 0.3s;
+        }
+        .input-wrapper:focus-within {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--db-gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+        }
+        .input-wrapper i { color: var(--db-gold); margin-right: 15px; font-size: 18px; }
         
-        .nav-buttons { display: flex; justify-content: space-between; margin-bottom: 20px; width: 100%; }
-        .nav-btn { text-decoration: none; color: var(--db-blue); font-weight: bold; font-size: 14px; }
-        .profile-link { background: var(--db-gold); padding: 5px 15px; border-radius: 20px; color: black; border: 2px solid black; }
+        input, select {
+            border: none; background: transparent; width: 100%; padding: 15px 0;
+            font-family: 'Poppins', sans-serif; font-size: 15px; color: white; outline: none;
+        }
+        input::placeholder { color: rgba(255, 255, 255, 0.4); }
+        select option { color: #333; background: white; }
+
+        .add-btn {
+            background: linear-gradient(45deg, var(--db-orange), #ff2600);
+            color: white; padding: 16px; border-radius: 15px; border: none;
+            font-family: 'Bangers', cursive; font-size: 22px; letter-spacing: 1px;
+            cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px;
+            box-shadow: 0 10px 20px rgba(255, 84, 0, 0.2);
+        }
+        .add-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 30px rgba(255, 84, 0, 0.4); }
+
+        /* LİSTE */
+        .link-listesi { margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
+
+        .link-kart {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 18px; padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            color: #333; transition: 0.3s; border-left: 4px solid var(--db-orange);
+        }
+        .link-kart:hover { transform: translateX(5px); box-shadow: 0 0 20px rgba(255, 215, 0, 0.2); }
+
+        .info h4 { margin: 0; font-size: 16px; font-weight: 700; }
+        .info span { font-size: 12px; color: #666; text-transform: uppercase; font-weight: 600; }
+
+        .actions { display: flex; align-items: center; gap: 12px; }
+
+        .counter {
+            background: var(--db-dark-blue); color: var(--db-gold);
+            padding: 6px 12px; border-radius: 10px;
+            font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 5px;
+        }
+        .counter span.emoji { font-size: 16px; animation: fingerBounce 1.5s infinite; }
+        @keyframes fingerBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+        .delete-btn {
+            color: #ff4444; background: rgba(255, 68, 68, 0.1); padding: 8px;
+            border-radius: 50%; text-decoration: none; transition: 0.2s; display: flex;
+        }
+        .delete-btn:hover { background: #ff4444; color: white; transform: rotate(90deg); }
+
+        /* --- ÜST BUTONLAR --- */
+        .view-site, .profile-settings {
+            position: absolute; top: 25px;
+            text-decoration: none; color: var(--db-gold); font-size: 22px;
+            transition: 0.3s; opacity: 0.6;
+        }
+        .view-site { right: 25px; }
+        .profile-settings { left: 25px; }
+        
+        .view-site:hover, .profile-settings:hover { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 5px var(--db-gold)); }
+
     </style>
 </head>
 <body>
+
+    <div class="particles">
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+
     <div class="admin-container">
-        <div class="nav-buttons">
-            <a href="/admin" class="nav-btn">← Geri</a>
-            
-            <a href="/profile/<%= user.username %>" class="nav-btn profile-link">
-                <i class="fas fa-user-cog"></i> Profil Ayarları
-            </a>
-
-            <a href="/<%= user.username %>" target="_blank" class="nav-btn">Siteyi Gör →</a>
-        </div>
-
-        <h1><%= user.ad_soyad %> <br><span style="font-size:20px; color:var(--db-orange)">KONTROL PANELİ 🔥</span></h1>
         
-        <form action="/add" method="POST">
-            <input type="hidden" name="hidden_username" value="<%= user.username %>">
+        <a href="/profile" class="profile-settings" title="Profili Düzenle">
+            <i class="fas fa-user-cog"></i>
+        </a>
 
-            <select name="platform" required>
-                <option value="" disabled selected>Platform Seç...</option>
-                <option value="instagram">Instagram</option>
-                <option value="youtube">YouTube</option>
-                <option value="x">X</option>
-                <option value="tiktok">TikTok</option>
-                <option value="kick">Kick</option>
-                <option value="twitch">Twitch</option>
-                <option value="discord">Discord</option>
-                <option value="diğer">Diğer</option>
-            </select>
-            <input type="text" name="baslik" placeholder="Başlık (Örn: Takip Et)" required>
-            <input type="url" name="url" placeholder="Link (https://...)" required>
-            <button type="submit" class="add-btn">EKLE +</button>
+        <a href="/" target="_blank" class="view-site" title="Siteyi Ziyaret Et">
+            <i class="fas fa-meteor"></i>
+        </a>
+
+        <h1 class="header-title">KONTROL PANELİ</h1>
+        <div class="header-desc">Karanlık tarafa hoş geldin... 🌑</div>
+
+        <form action="/add" method="POST">
+            <div class="input-wrapper">
+                <i class="fas fa-dragon"></i>
+                <select name="platform">
+                    <option value="">İkon Seç (Otomatik)</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="x">X</option>
+                    <option value="discord">Discord</option>
+                    <option value="twitch">Twitch</option>
+                    <option value="kick">Kick</option>
+                    <option value="linkedin">LinkedIn</option>
+                </select>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-bolt"></i>
+                <input type="text" name="baslik" placeholder="Başlık (Örn: Abone Ol!)" required>
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-link"></i>
+                <input type="url" name="url" placeholder="Link (https://...)" required>
+            </div>
+
+            <button type="submit" class="add-btn">LİNKİ EKLE 🔥</button>
         </form>
 
-        <div style="margin-top: 30px;">
-            <h3 style="text-align: center; font-family: 'Bangers'; color: #023E8A;">LİNKLER & İSTATİSTİK</h3>
-            <% if (links.length === 0) { %><div style="text-align:center; color:grey;">Henüz link yok.</div><% } %>
-            
-            <% links.forEach(function(link) { %>
-                <div class="link-item">
-                    <div style="flex-grow: 1;">
-                        <strong><%= link.title %></strong>
-                        <div style="font-size: 12px; color: gray;"><%= link.platform %></div>
+        <div class="link-listesi">
+            <% if(links.length === 0) { %>
+                <div style="text-align:center; color:rgba(255,255,255,0.4); padding:20px;">Henüz link yok...</div>
+            <% } %>
+
+            <% links.forEach(link => { %>
+                <div class="link-kart">
+                    <div class="info">
+                        <h4><%= link.title %></h4>
+                        <span><%= link.platform || 'web' %></span>
                     </div>
-                    <div class="click-badge">⚡ <%= link.tiklanma_sayisi || 0 %></div>
-                    <a href="/delete/<%= link.id %>?u=<%= user.username %>" class="delete-btn" onclick="return confirm('Sil?')">SİL</a>
+
+                    <div class="actions">
+                        <div class="counter" title="Toplam Tıklanma">
+                            <span class="emoji">👆</span> <%= link.tiklanma_sayisi || 0 %>
+                        </div>
+
+                        <a href="/delete/<%= link.id %>" class="delete-btn" onclick="return confirm('Silmek istiyor musun?')">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
                 </div>
             <% }); %>
         </div>
     </div>
+
 </body>
 </html>

@@ -9,97 +9,32 @@
     
     <style>
         :root { --db-orange: #FF5400; --db-blue: #023E8A; --db-gold: #FFD700; --bg-start: #f8931f; --bg-end: #fff4a3; }
-        
-        body { 
-            background: linear-gradient(0deg, var(--bg-start) 0%, var(--bg-end) 100%); 
-            min-height: 100vh; 
-            font-family: 'Helvetica Neue', Arial, sans-serif; 
-            margin: 0; padding: 40px 20px; 
-            display: flex; flex-direction: column; align-items: center; 
-            overflow-x: hidden; 
-        }
-        
-        body::before { 
-            content: ""; position: fixed; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); width: 80vw; height: 80vh; 
-            background-image: url('/images/shenron.png'); 
-            background-repeat: no-repeat; background-position: center; 
-            background-size: contain; opacity: 0.12; z-index: 0; pointer-events: none; 
-        }
-
-        .admin-container { 
-            width: 100%; max-width: 500px; 
-            background-color: rgba(255, 255, 255, 0.8); 
-            backdrop-filter: blur(8px); 
-            border: 2px solid var(--db-blue); border-radius: 25px; 
-            padding: 30px; 
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1); 
-            position: relative; z-index: 2; 
-        }
-
+        body { background: linear-gradient(0deg, var(--bg-start) 0%, var(--bg-end) 100%); min-height: 100vh; font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
+        body::before { content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vw; height: 80vh; background-image: url('/images/shenron.png'); background-repeat: no-repeat; background-position: center; background-size: contain; opacity: 0.12; z-index: 0; pointer-events: none; }
+        .admin-container { width: 100%; max-width: 500px; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); border: 2px solid var(--db-blue); border-radius: 25px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); position: relative; z-index: 2; }
         h1 { font-family: 'Bangers', cursive; font-size: 34px; text-align: center; color: #000; margin-bottom: 25px; }
-        
-        input, select { 
-            width: 100%; padding: 14px; margin-bottom: 10px; 
-            border-radius: 50px; border: 2px solid var(--db-blue); 
-            box-sizing: border-box; font-size: 14px;
-        }
-
-        .add-btn { 
-            background-color: var(--db-orange); color: white; border: none; 
-            padding: 14px; width: 100%; border-radius: 50px; 
-            font-family: 'Bangers', cursive; font-size: 22px; cursor: pointer; 
-            box-shadow: 0 4px 0px #b33c00; transition: 0.2s; 
-        }
+        input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 50px; border: 2px solid var(--db-blue); box-sizing: border-box; }
+        .add-btn { background-color: var(--db-orange); color: white; border: none; padding: 14px; width: 100%; border-radius: 50px; font-family: 'Bangers', cursive; font-size: 22px; cursor: pointer; box-shadow: 0 4px 0px #b33c00; transition: 0.2s; }
         .add-btn:hover { transform: translateY(-2px); }
-
-        .link-item { 
-            background: white; border: 1.5px solid var(--db-blue); 
-            border-radius: 20px; padding: 15px; margin-bottom: 10px; 
-            display: flex; justify-content: space-between; align-items: center; 
-        }
-
-        .click-badge { 
-            background: var(--db-blue); color: var(--db-gold); 
-            padding: 5px 10px; border-radius: 20px; font-weight: bold; margin-right: 10px; 
-        }
-
-        .delete-btn { 
-            background: #ff4444; color: white; border: none; 
-            padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: bold; 
-            text-decoration: none; font-size: 12px; display: inline-block;
-        }
-
-        /* --- ÜST BUTONLAR (NAVİGASYON) --- */
-        .nav-buttons {
-            display: flex; justify-content: space-between; margin-bottom: 20px;
-        }
-        .nav-btn {
-            text-decoration: none; color: var(--db-blue); font-weight: bold;
-            display: flex; align-items: center; gap: 5px; transition: 0.3s;
-            font-size: 14px;
-        }
-        .nav-btn:hover { color: var(--db-orange); transform: scale(1.05); }
-
-        .profile-btn {
-            background: var(--db-gold); padding: 5px 12px; border-radius: 20px; color: black;
-            border: 2px solid black; box-shadow: 2px 2px 0px black;
-        }
+        .link-item { background: white; border: 1.5px solid var(--db-blue); border-radius: 20px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .click-badge { background: var(--db-blue); color: var(--db-gold); padding: 5px 10px; border-radius: 20px; font-weight: bold; margin-right: 10px; }
+        .delete-btn { background: #ff4444; color: white; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: bold; text-decoration: none; font-size:12px; }
+        
+        .nav-buttons { display: flex; justify-content: space-between; margin-bottom: 20px; width: 100%; }
+        .nav-btn { text-decoration: none; color: var(--db-blue); font-weight: bold; font-size: 14px; }
+        .profile-link { background: var(--db-gold); padding: 5px 15px; border-radius: 20px; color: black; border: 2px solid black; }
     </style>
 </head>
 <body>
     <div class="admin-container">
-        
         <div class="nav-buttons">
             <a href="/admin" class="nav-btn">← Geri</a>
             
-            <a href="/profile/<%= user.username %>" class="nav-btn profile-btn">
+            <a href="/profile/<%= user.username %>" class="nav-btn profile-link">
                 <i class="fas fa-user-cog"></i> Profil Ayarları
             </a>
-            
-            <a href="/<%= user.username %>" target="_blank" class="nav-btn">
-                Siteyi Gör <i class="fas fa-external-link-alt"></i>
-            </a>
+
+            <a href="/<%= user.username %>" target="_blank" class="nav-btn">Siteyi Gör →</a>
         </div>
 
         <h1><%= user.ad_soyad %> <br><span style="font-size:20px; color:var(--db-orange)">KONTROL PANELİ 🔥</span></h1>
@@ -107,15 +42,12 @@
         <form action="/add" method="POST">
             <input type="hidden" name="hidden_username" value="<%= user.username %>">
 
-            <select name="platform">
-                <option value="">İkon Seç (Otomatik)</option>
+            <select name="platform" required>
+                <option value="" disabled selected>Platform Seç...</option>
                 <option value="instagram">Instagram</option>
                 <option value="youtube">YouTube</option>
-                <option value="x">X (Twitter)</option>
+                <option value="x">X</option>
                 <option value="tiktok">TikTok</option>
-                <option value="twitch">Twitch</option>
-                <option value="discord">Discord</option>
-                <option value="linkedin">LinkedIn</option>
             </select>
             <input type="text" name="baslik" placeholder="Başlık (Örn: Takip Et)" required>
             <input type="url" name="url" placeholder="Link (https://...)" required>
@@ -124,27 +56,19 @@
 
         <div style="margin-top: 30px;">
             <h3 style="text-align: center; font-family: 'Bangers'; color: #023E8A;">LİNKLER & İSTATİSTİK</h3>
+            <% if (links.length === 0) { %><div style="text-align:center; color:grey;">Henüz link yok.</div><% } %>
             
-            <% if (links.length === 0) { %>
-                <div style="text-align: center; color: gray;">Henüz hiç link yok.</div>
-            <% } %>
-
             <% links.forEach(function(link) { %>
                 <div class="link-item">
                     <div style="flex-grow: 1;">
                         <strong><%= link.title %></strong>
-                        <div style="font-size: 12px; color: gray;">
-                            <%= link.platform ? link.platform.toUpperCase() : 'WEB' %>
-                        </div>
+                        <div style="font-size: 12px; color: gray;"><%= link.platform %></div>
                     </div>
-                    
                     <div class="click-badge">⚡ <%= link.tiklanma_sayisi || 0 %></div>
-
-                    <a href="/delete/<%= link.id %>?u=<%= user.username %>" class="delete-btn" onclick="return confirm('Silmek istiyor musun?')">SİL</a>
+                    <a href="/delete/<%= link.id %>?u=<%= user.username %>" class="delete-btn" onclick="return confirm('Sil?')">SİL</a>
                 </div>
             <% }); %>
         </div>
-
     </div>
 </body>
 </html>

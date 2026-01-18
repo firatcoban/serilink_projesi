@@ -2,64 +2,24 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Paneli | Dragon Ball 🔥</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&display=swap" rel="stylesheet">
-    
+    <title>Yönetim | Seçim</title>
     <style>
-        :root { --db-orange: #FF5400; --db-blue: #023E8A; --db-gold: #FFD700; --bg-start: #f8931f; --bg-end: #fff4a3; }
-        body { background: linear-gradient(0deg, var(--bg-start) 0%, var(--bg-end) 100%); min-height: 100vh; font-family: 'Helvetica Neue', Arial, sans-serif; margin: 0; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80vw; height: 80vh; background-image: url('/images/shenron.png'); background-repeat: no-repeat; background-position: center; background-size: contain; opacity: 0.12; z-index: 0; pointer-events: none; }
-        .admin-container { width: 100%; max-width: 500px; background-color: rgba(255, 255, 255, 0.8); backdrop-filter: blur(8px); border: 2px solid var(--db-blue); border-radius: 25px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); position: relative; z-index: 2; }
-        h1 { font-family: 'Bangers', cursive; font-size: 34px; text-align: center; color: #000; margin-bottom: 25px; }
-        input, select { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 50px; border: 2px solid var(--db-blue); box-sizing: border-box; }
-        .add-btn { background-color: var(--db-orange); color: white; border: none; padding: 14px; width: 100%; border-radius: 50px; font-family: 'Bangers', cursive; font-size: 22px; cursor: pointer; box-shadow: 0 4px 0px #b33c00; transition: 0.2s; }
-        .add-btn:hover { transform: translateY(-2px); }
-        .link-item { background: white; border: 1.5px solid var(--db-blue); border-radius: 20px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-        .click-badge { background: var(--db-blue); color: var(--db-gold); padding: 5px 10px; border-radius: 20px; font-weight: bold; margin-right: 10px; }
-        .delete-btn { background: #ff4444; color: white; border: none; padding: 8px 15px; border-radius: 50px; cursor: pointer; font-weight: bold; }
-        .back-link { display: block; text-align: center; margin-top: 20px; font-weight: bold; color: var(--db-blue); text-decoration: none; }
+        body { background: #0f172a; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+        .card { background: rgba(255,255,255,0.1); padding: 20px; margin: 10px; border-radius: 10px; width: 300px; display: flex; justify-content: space-between; align-items: center; }
+        .btn { background: #FF5400; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; }
+        img { width: 50px; height: 50px; border-radius: 50%; object-fit:cover; }
     </style>
 </head>
 <body>
-    <div class="admin-container">
-        <h1>KONTROL PANELİ 🔥</h1>
-        
-        <form action="/admin/add" method="POST">
-            <select name="platform" required>
-                <option value="" disabled selected>Platform Seç...</option>
-                <option value="instagram">Instagram</option>
-                <option value="youtube">YouTube</option>
-                <option value="x">X (Twitter)</option>
-                <option value="tiktok">TikTok</option>
-                <option value="twitch">Twitch</option>
-                <option value="discord">Discord</option>
-                <option value="kick">Kick</option>
-            </select>
-            <input type="text" name="title" placeholder="Başlık (Örn: Takip Et)" required>
-            <input type="url" name="url" placeholder="Link (https://...)" required>
-            <button type="submit" class="add-btn">EKLE +</button>
-        </form>
-
-        <div style="margin-top: 30px;">
-            <h3 style="text-align: center; font-family: 'Bangers'; color: #023E8A;">LİNKLER & İSTATİSTİK</h3>
-            <% links.forEach(function(link) { %>
-                <div class="link-item">
-                    <div style="flex-grow: 1;">
-                        <strong><%= link.title %></strong>
-                        <div style="font-size: 12px; color: gray;"><%= link.platform %></div>
-                    </div>
-                    
-                    <div class="click-badge">⚡ <%= link.click_count %></div>
-
-                    <form action="/admin/delete/<%= link.id %>" method="POST" style="margin:0;">
-                        <button type="submit" class="delete-btn">SİL</button>
-                    </form>
-                </div>
-            <% }); %>
+    <h1>KİMİN PANELİNE GİRİLECEK?</h1>
+    <% users.forEach(user => { %>
+        <div class="card">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <img src="<%= user.resim_url %>">
+                <span><%= user.ad_soyad %></span>
+            </div>
+            <a href="/admin/<%= user.username %>" class="btn">YÖNET 👉</a>
         </div>
-
-        <a href="/" class="back-link">← Siteye Dön</a>
-    </div>
+    <% }); %>
 </body>
 </html>

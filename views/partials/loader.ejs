@@ -1,3 +1,10 @@
+<% 
+    let activeUser = null;
+    if (typeof profile !== 'undefined') { activeUser = profile; }
+    else if (typeof user !== 'undefined') { activeUser = user; }
+%>
+
+<% if (activeUser) { %>
 <style>
     #loader-wrapper { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, #f8931f 0%, #fff4a3 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.8s ease-out, visibility 0.8s; overflow: hidden; }
     #loader-wrapper::before { content: ""; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85vw; height: 85vh; background-image: url('/images/shenron.png'); background-repeat: no-repeat; background-position: center; background-size: contain; opacity: 0.12; z-index: 0; pointer-events: none; }
@@ -24,8 +31,8 @@
 
 <div id="loader-wrapper">
     <div class="loader-content">
-        <img src="<%= profile.resim_url %>" alt="Logo" class="loader-pic">
-        <h2 class="loader-username"><%= profile.ad_soyad %></h2>
+        <img src="<%= activeUser.resim_url %>" alt="Profil" class="loader-pic">
+        <h2 class="loader-username"><%= activeUser.ad_soyad %></h2>
     </div>
     <div class="loader-balls-area">
         <div class="ball-orbit">
@@ -40,6 +47,9 @@
 <script>
     window.addEventListener('load', function() {
         const loader = document.getElementById('loader-wrapper');
-        setTimeout(() => { loader.classList.add('loader-hidden'); }, 2500); 
+        if(loader) {
+            setTimeout(() => { loader.classList.add('loader-hidden'); }, 1500); 
+        }
     });
 </script>
+<% } %>

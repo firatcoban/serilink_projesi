@@ -88,14 +88,25 @@ app.get('/admin', girisZorunlu, (req, res) => {
     });
 });
 
-// 3. DASHBOARD (LİNK YÖNETİMİ)
+// 3. DASHBOARD (LİNK YÖNETİMİ) - HATA GÖSTERİCİLİ
 app.get('/admin/:username', girisZorunlu, (req, res) => {
     const kadi = req.params.username;
+    
     db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {
-        if (!userResult.length) return res.send("Kullanıcı yok.");
+        if (err) return res.send("<h1>Veritabanı Hatası:</h1> " + err.message);
+        if (!userResult.length) return res.send("<h1>Hata:</h1> Böyle bir kullanıcı bulunamadı.");
+        
         const user = userResult[0];
+        
         db.query('SELECT * FROM links WHERE user_id = ? ORDER BY id DESC', [user.id], (err, links) => {
-            res.render('dashboard', { user: user, links: links });
+            if (err) return res.send("<h1>Link Hatası:</h1> " + err.message);
+            
+            // Eğer render hatası varsa yakalayalım (Örn: Loader bulunamadı)
+            try {
+                res.render('dashboard', { user: user, links: links });
+            } catch (renderErr) {
+                res.send("<h1>Sayfa Yükleme Hatası (Muhtemelen Loader Eksik):</h1> " + renderErr.message);
+            }
         });
     });
 });

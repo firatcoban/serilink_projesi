@@ -2,40 +2,147 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Profil Ayarları</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel | <%= user.ad_soyad %> 🔥</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    
     <style>
-        body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .box { background: rgba(255,255,255,0.05); padding: 40px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
-        .current-img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #FFD700; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); border: 1px solid #444; border-radius: 10px; color: white; box-sizing: border-box; }
-        .btn-save { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .back-btn { display: inline-block; margin-bottom: 20px; color: #aaa; text-decoration: none; }
+        :root { --db-orange: #FF5400; --db-gold: #FFD700; --db-dark-blue: #051c3b; --glass-dark: rgba(5, 28, 59, 0.65); }
+        
+        body { 
+            background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%); 
+            min-height: 100vh; font-family: 'Poppins', sans-serif; 
+            margin: 0; padding: 40px 20px; 
+            display: flex; justify-content: center; 
+            color: white; cursor: url('/images/dragonball_cloudy.png') 16 16, auto; 
+        }
+        
+        body::before { 
+            content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            width: 80vw; height: 80vh; background-image: url('/images/shenron.png'); 
+            background-repeat: no-repeat; background-position: center; background-size: contain; 
+            opacity: 0.1; z-index: -1; pointer-events: none; filter: grayscale(100%); 
+        }
+        
+        .admin-container { 
+            width: 100%; max-width: 550px; background: var(--glass-dark); 
+            backdrop-filter: blur(15px); border: 2px solid rgba(255, 215, 0, 0.2); 
+            border-radius: 35px; padding: 35px; position: relative; 
+        }
+        
+        .header-title { 
+            text-align: center; font-family: 'Bangers'; font-size: 42px; 
+            background: linear-gradient(to right, var(--db-gold), var(--db-orange)); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; 
+        }
+        
+        /* ÜST BUTONLAR */
+        .top-btn { 
+            position: absolute; top: 25px; color: var(--db-gold); 
+            font-size: 22px; transition: 0.3s; opacity: 0.7; z-index:10; text-decoration: none;
+        }
+        .top-btn:hover { transform: scale(1.2); opacity: 1; }
+        
+        .back-btn { left: 25px; } /* Geri Dön (Yönetim Merkezine) */
+        .profile-settings { left: 75px; } /* Profil Ayarları */
+        .view-site { right: 25px; } /* Siteyi Gör */
+
+        .input-wrapper { 
+            background: rgba(255,255,255,0.08); border-radius: 15px; padding: 10px 20px; 
+            margin-bottom: 15px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.05); 
+        }
+        
+        input, select { 
+            border: none; background: transparent; width: 100%; color: white; 
+            font-family: 'Poppins'; font-size: 15px; outline: none; 
+        }
+        
+        select option { background-color: #000; color: white; } 
+
+        .add-btn { 
+            background: linear-gradient(45deg, var(--db-orange), #ff2600); width: 100%; 
+            padding: 15px; border-radius: 15px; border: none; color: white; 
+            font-family: 'Bangers'; font-size: 22px; cursor: pointer; 
+        }
+        
+        .link-kart { 
+            background: rgba(255,255,255,0.95); padding: 15px; border-radius: 15px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            color: #333; margin-bottom: 10px; border-left: 5px solid var(--db-orange); 
+        }
+        
+        .counter { 
+            background: var(--db-dark-blue); color: var(--db-gold); padding: 5px 10px; 
+            border-radius: 8px; font-weight: bold; font-size: 14px; margin-right: 10px; 
+        }
+        
+        .delete-btn { color: #ff4444; font-size: 18px; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <a href="/admin/<%= profile.username %>" class="back-btn"><i class="fas fa-arrow-left"></i> Panele Dön</a>
+
+    <%- include('partials/loader') %>
+
+    <div class="admin-container">
         
-        <h2>Profil Ayarları</h2>
+        <a href="/admin" class="top-btn back-btn" title="Yönetim Merkezi">
+            <i class="fas fa-th-large"></i>
+        </a>
+
+        <a href="/profile/<%= user.username %>" class="top-btn profile-settings" title="Profili Düzenle">
+            <i class="fas fa-user-cog"></i>
+        </a>
         
-        <form action="/edit/update" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="hidden_username" value="<%= profile.username %>">
-            
-            <img src="<%= profile.resim_url %>" class="current-img">
-            
-            <label style="display:block; text-align:left; margin-bottom:5px;">Ad Soyad</label>
-            <input type="text" name="ad_soyad" value="<%= profile.ad_soyad %>">
-            
-            <label style="display:block; text-align:left; margin-bottom:5px;">Biyografi</label>
-            <input type="text" name="biyografi" value="<%= profile.biyografi %>">
-            
-            <label style="display:block; text-align:left; margin-bottom:5px;">Yeni Resim Yükle</label>
-            <input type="file" name="profil_resmi">
-            
-            <button type="submit" class="btn-save">KAYDET ✅</button>
+        <a href="/<%= user.username %>" target="_blank" class="top-btn view-site" title="Siteyi Gör">
+            <i class="fas fa-meteor"></i>
+        </a>
+
+        <h1 class="header-title">KONTROL PANELİ</h1>
+        <p style="text-align:center; color:#ccc; margin-bottom:30px;"><%= user.ad_soyad %></p>
+
+        <form action="/add" method="POST">
+            <input type="hidden" name="hidden_username" value="<%= user.username %>">
+
+            <div class="input-wrapper"><i class="fas fa-dragon" style="color:gold; margin-right:10px;"></i>
+                <select name="platform">
+                    <option value="">İkon Seç...</option>
+                    <option value="instagram">Instagram</option>
+                    <option value="youtube">YouTube</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="x">X (Twitter)</option>
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="web">Web Sitesi</option>
+                </select>
+            </div>
+            <div class="input-wrapper"><i class="fas fa-bolt" style="color:gold; margin-right:10px;"></i>
+                <input type="text" name="baslik" placeholder="Başlık (Örn: Abone Ol!)" required>
+            </div>
+            <div class="input-wrapper"><i class="fas fa-link" style="color:gold; margin-right:10px;"></i>
+                <input type="url" name="url" placeholder="Link (https://...)" required>
+            </div>
+            <button type="submit" class="add-btn">EKLE 🔥</button>
         </form>
+
+        <div style="margin-top:30px;">
+            <% if(links.length === 0) { %>
+                <div style="text-align:center; color:rgba(255,255,255,0.5);">Henüz hiç link eklemedin...</div>
+            <% } %>
+
+            <% links.forEach(link => { %>
+                <div class="link-kart">
+                    <strong><%= link.title %></strong>
+                    <div style="display:flex; align-items:center;">
+                        <div class="counter">👆 <%= link.tiklanma_sayisi || 0 %></div>
+                        
+                        <a href="/delete/<%= link.id %>?u=<%= user.username %>" class="delete-btn" onclick="return confirm('Silmek istediğine emin misin?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            <% }); %>
+        </div>
     </div>
 </body>
 </html>

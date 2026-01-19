@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v5',
+    secret: 'gizli_anahtar_serilink_v6',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -77,7 +77,6 @@ app.post('/login', (req, res) => {
     });
 });
 
-// YÖNETİM MERKEZİ
 app.get('/admin', girisZorunlu, (req, res) => {
     const sql = `SELECT u.*, COUNT(l.id) as link_sayisi FROM users u LEFT JOIN links l ON u.id = l.user_id GROUP BY u.id`;
     db.query(sql, (err, results) => {
@@ -86,38 +85,44 @@ app.get('/admin', girisZorunlu, (req, res) => {
     });
 });
 
-// 🔥 YENİ: HESAP AYARLARI SAYFASI 🔥
+// 🔥🔥🔥 DEDEKTİF MODU: AYARLAR SAYFASI 🔥🔥🔥
 app.get('/settings', girisZorunlu, (req, res) => {
     db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
-        if(err) return res.send("Hata: " + err.message);
-        res.render('settings', { user: result[0] });
+        if(err) return res.send("Veritabanı Hatası: " + err.message);
+        
+        // Render hatasını yakalamak için özel kontrol
+        res.render('settings', { user: result[0] }, (renderErr, html) => {
+            if (renderErr) {
+                return res.send(`
+                    <h1 style="color:red">SAYFA BULUNAMADI! (settings.ejs)</h1>
+                    <p>Sunucu 'views/settings.ejs' dosyasını bulamıyor veya içinde hata var.</p>
+                    <hr>
+                    <p><b>Hata Detayı:</b> ${renderErr.message}</p>
+                    <p><b>Çözüm:</b> 'views' klasörünün içinde 'settings.ejs' adında bir dosya oluşturduğundan emin ol.</p>
+                `);
+            }
+            res.send(html);
+        });
     });
 });
 
-// 🔥 YENİ: HESAP BİLGİLERİNİ GÜNCELLE 🔥
 app.post('/settings/update', girisZorunlu, async (req, res) => {
     const { username, ad_soyad, password } = req.body;
     const userId = req.session.userId;
 
-    // Şifre alanı doluysa şifreyi de güncelle, boşsa sadece diğerlerini
     if (password && password.trim() !== "") {
         const hashed = await bcrypt.hash(password, 10);
         const sql = "UPDATE users SET username = ?, ad_soyad = ?, password = ? WHERE id = ?";
         db.query(sql, [username, ad_soyad, hashed, userId], (err) => {
-            if(err) return res.send("Güncelleme Hatası (Kullanıcı adı alınmış olabilir): " + err.message);
-            
-            // Oturumu güncelle
+            if(err) return res.send("Güncelleme Hatası: " + err.message);
             req.session.username = username;
             req.session.ad_soyad = ad_soyad;
             res.redirect('/admin');
         });
     } else {
-        // Şifre değişmeyecek
         const sql = "UPDATE users SET username = ?, ad_soyad = ? WHERE id = ?";
         db.query(sql, [username, ad_soyad, userId], (err) => {
             if(err) return res.send("Güncelleme Hatası: " + err.message);
-            
-            // Oturumu güncelle
             req.session.username = username;
             req.session.ad_soyad = ad_soyad;
             res.redirect('/admin');
@@ -125,7 +130,6 @@ app.post('/settings/update', girisZorunlu, async (req, res) => {
     }
 });
 
-// DİĞER ROTALAR
 app.get('/admin/:username', girisZorunlu, (req, res) => {
     const kadi = req.params.username;
     db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {

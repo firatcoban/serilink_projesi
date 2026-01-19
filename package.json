@@ -19,6 +19,7 @@
     "express-validator": "^7.3.1",
     "multer": "^2.0.2",
     "mysql2": "^3.16.0",
+    "nodemailer": "^7.0.12",
     "pg": "^8.16.3"
   }
 }

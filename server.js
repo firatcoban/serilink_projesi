@@ -16,7 +16,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v3',
+    secret: 'gizli_anahtar_serilink_v5',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -28,7 +28,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// VERİTABANI BAĞLANTISI
+// DB BAĞLANTISI (Senin Şifrelerin)
 const db = mysql.createPool({
     host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',           
     user: 'uzzt3cxlzejgx2x3',           
@@ -40,7 +40,6 @@ const db = mysql.createPool({
     multipleStatements: true
 });
 
-// GÜVENLİK
 const girisZorunlu = (req, res, next) => {
     if (!req.session.userId) return res.redirect('/login');
     next();
@@ -48,10 +47,8 @@ const girisZorunlu = (req, res, next) => {
 
 // --- ROTALAR ---
 
-// 1. GİRİŞ VE ANA SAYFA
 app.get('/', (req, res) => {
-    if (req.session.userId) res.redirect('/admin'); 
-    else res.redirect('/login'); 
+    if (req.session.userId) res.redirect('/admin'); else res.redirect('/login'); 
 });
 
 app.get('/login', (req, res) => { res.render('login'); });
@@ -59,10 +56,11 @@ app.get('/login', (req, res) => { res.render('login'); });
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
+        if(err) return res.send("DB Hatası: " + err.message);
         if (results.length > 0) {
             const user = results[0];
-            const passCheck = user.password || '$2a$10$dummyhash'; 
-            if(!user.password) return res.redirect('/onar'); // Şifre yoksa onara git
+            const passCheck = user.password || '$2a$10$dummy'; 
+            if(!user.password) return res.redirect('/onar'); 
 
             const match = await bcrypt.compare(password, passCheck);
             if (match) {
@@ -71,75 +69,95 @@ app.post('/login', (req, res) => {
                 req.session.ad_soyad = user.ad_soyad;
                 res.redirect('/admin');
             } else {
-                res.send('<h1>Şifre Yanlış</h1><br><a href="/login">Geri</a>');
+                res.send('<h1>Şifre Yanlış</h1><a href="/login">Geri</a>');
             }
         } else {
-            res.send('<h1>Kullanıcı Yok</h1><br><a href="/login">Geri</a>');
+            res.send('<h1>Kullanıcı Yok</h1><a href="/login">Geri</a>');
         }
     });
 });
 
-// 2. YÖNETİM MERKEZİ (LOBİ)
+// YÖNETİM MERKEZİ
 app.get('/admin', girisZorunlu, (req, res) => {
-    // Kullanıcıları ve link sayılarını çek
     const sql = `SELECT u.*, COUNT(l.id) as link_sayisi FROM users u LEFT JOIN links l ON u.id = l.user_id GROUP BY u.id`;
     db.query(sql, (err, results) => {
+        if(err) return res.send("Admin Panel Hatası: " + err.message);
         res.render('admin', { users: results, activeId: req.session.userId });
     });
 });
 
-// 3. DASHBOARD (LİNK YÖNETİMİ) - HATA GÖSTERİCİLİ
+// 🔥 YENİ: HESAP AYARLARI SAYFASI 🔥
+app.get('/settings', girisZorunlu, (req, res) => {
+    db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
+        if(err) return res.send("Hata: " + err.message);
+        res.render('settings', { user: result[0] });
+    });
+});
+
+// 🔥 YENİ: HESAP BİLGİLERİNİ GÜNCELLE 🔥
+app.post('/settings/update', girisZorunlu, async (req, res) => {
+    const { username, ad_soyad, password } = req.body;
+    const userId = req.session.userId;
+
+    // Şifre alanı doluysa şifreyi de güncelle, boşsa sadece diğerlerini
+    if (password && password.trim() !== "") {
+        const hashed = await bcrypt.hash(password, 10);
+        const sql = "UPDATE users SET username = ?, ad_soyad = ?, password = ? WHERE id = ?";
+        db.query(sql, [username, ad_soyad, hashed, userId], (err) => {
+            if(err) return res.send("Güncelleme Hatası (Kullanıcı adı alınmış olabilir): " + err.message);
+            
+            // Oturumu güncelle
+            req.session.username = username;
+            req.session.ad_soyad = ad_soyad;
+            res.redirect('/admin');
+        });
+    } else {
+        // Şifre değişmeyecek
+        const sql = "UPDATE users SET username = ?, ad_soyad = ? WHERE id = ?";
+        db.query(sql, [username, ad_soyad, userId], (err) => {
+            if(err) return res.send("Güncelleme Hatası: " + err.message);
+            
+            // Oturumu güncelle
+            req.session.username = username;
+            req.session.ad_soyad = ad_soyad;
+            res.redirect('/admin');
+        });
+    }
+});
+
+// DİĞER ROTALAR
 app.get('/admin/:username', girisZorunlu, (req, res) => {
     const kadi = req.params.username;
-    
     db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {
-        if (err) return res.send("<h1>Veritabanı Hatası:</h1> " + err.message);
-        if (!userResult.length) return res.send("<h1>Hata:</h1> Böyle bir kullanıcı bulunamadı.");
-        
+        if (!userResult.length) return res.send("Kullanıcı yok.");
         const user = userResult[0];
-        
         db.query('SELECT * FROM links WHERE user_id = ? ORDER BY id DESC', [user.id], (err, links) => {
-            if (err) return res.send("<h1>Link Hatası:</h1> " + err.message);
-            
-            // Eğer render hatası varsa yakalayalım (Örn: Loader bulunamadı)
-            try {
-                res.render('dashboard', { user: user, links: links });
-            } catch (renderErr) {
-                res.send("<h1>Sayfa Yükleme Hatası (Muhtemelen Loader Eksik):</h1> " + renderErr.message);
-            }
+            res.render('dashboard', { user: user, links: links });
         });
     });
 });
 
-// 4. PROFİL AYARLARI (RESİM/BİYO) - İŞTE GERİ GELDİ!
 app.get('/profile/:username', girisZorunlu, (req, res) => {
-    const kadi = req.params.username;
-    db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, result) => {
-        if(!result.length) return res.send("Kullanıcı bulunamadı");
+    db.query('SELECT * FROM users WHERE username = ?', [req.params.username], (err, result) => {
         res.render('profile', { profile: result[0] });
     });
 });
 
-// 5. YENİ KULLANICI EKLE
 app.post('/admin/create-user', girisZorunlu, async (req, res) => {
     const { username, ad_soyad, password } = req.body;
     const hashed = await bcrypt.hash(password, 10);
     db.query('INSERT INTO users (username, ad_soyad, password, resim_url) VALUES (?, ?, ?, ?)', 
         [username, ad_soyad, hashed, '/images/logo.jpg'], 
-        () => res.redirect('/admin'));
+        (err) => { if(err) return res.send("Hata: "+err.message); res.redirect('/admin'); });
 });
 
-// 6. KULLANICI SİL
 app.get('/admin/delete-user/:id', girisZorunlu, (req, res) => {
     if(req.params.id == req.session.userId) return res.send("Kendini silemezsin!");
     db.query('DELETE FROM links WHERE user_id = ?', [req.params.id], () => {
-        db.query('DELETE FROM users WHERE id = ?', [req.params.id], () => {
-            res.redirect('/admin');
-        });
+        db.query('DELETE FROM users WHERE id = ?', [req.params.id], () => res.redirect('/admin'));
     });
 });
 
-// 7. LİNK EKLEME
 app.post('/add', girisZorunlu, (req, res) => {
     const { baslik, url, platform, hidden_username } = req.body;
     let cleanUrl = (url.startsWith('http')) ? url : 'https://' + url;
@@ -148,7 +166,6 @@ app.post('/add', girisZorunlu, (req, res) => {
     });
 });
 
-// 8. PROFİL GÜNCELLEME (POST)
 app.post('/edit/update', girisZorunlu, upload.single('profil_resmi'), (req, res) => {
     const { ad_soyad, biyografi, hidden_username } = req.body;
     let img = req.file ? '/images/'+req.file.filename : null;
@@ -157,21 +174,18 @@ app.post('/edit/update', girisZorunlu, upload.single('profil_resmi'), (req, res)
     db.query(sql, p, () => res.redirect('/profile/'+hidden_username));
 });
 
-// 9. LİNK SİLME
 app.get('/delete/:id', girisZorunlu, (req, res) => {
     const u = req.query.u;
     db.query('DELETE FROM links WHERE id=?', [req.params.id], () => res.redirect('/admin/'+u));
 });
 
-// 10. ONARIM
 app.get('/onar', async (req, res) => {
     const defaultHash = await bcrypt.hash("123456", 10);
     db.query("UPDATE users SET password = ? WHERE password IS NULL OR password = ''", [defaultHash], () => {
-        res.send("<h1>✅ SİSTEM ONARILDI</h1><a href='/login'>Giriş Yap</a>");
+        res.send("<h1>✅ ONARILDI</h1><a href='/login'>Giriş</a>");
     });
 });
 
-// DİĞERLERİ
 app.get('/logout', (req, res) => { req.session.destroy(() => res.redirect('/login')); });
 app.get('/register', (req, res) => { res.render('register'); });
 app.post('/register', async (req, res) => {
@@ -179,14 +193,16 @@ app.post('/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     db.query('INSERT INTO users (username, ad_soyad, password, resim_url) VALUES (?, ?, ?, ?)', [username, ad_soyad, hashed, '/images/logo.jpg'], ()=> res.redirect('/login'));
 });
+
 app.get('/:kullaniciadi', (req, res) => {
     const k = req.params.kullaniciadi;
-    if(['admin','login','register','logout','add','edit','delete','onar'].includes(k)) return;
+    if(['admin','login','register','logout','add','edit','delete','onar','settings'].includes(k)) return;
     db.query('SELECT * FROM users WHERE username=?', [k], (e, u) => {
         if(!u || !u.length) return res.send("Kullanıcı yok");
         db.query('SELECT * FROM links WHERE user_id=? ORDER BY id DESC', [u[0].id], (err, l) => res.render('index', {profile:u[0], links:l}));
     });
 });
+
 app.get('/git/:id', (req, res) => {
     db.query("UPDATE links SET tiklanma_sayisi = tiklanma_sayisi + 1 WHERE id = ?", [req.params.id], () => {
         db.query("SELECT url FROM links WHERE id = ?", [req.params.id], (err, rows) => {

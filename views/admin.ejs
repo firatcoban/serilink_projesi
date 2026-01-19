@@ -10,11 +10,13 @@
         body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; padding: 40px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
         h1 { margin: 0; background: linear-gradient(to right, #FFD700, #FF5400); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .logout-btn { color: #ff4444; text-decoration: none; font-weight: bold; font-size: 18px; }
+        
+        .nav-links a { color: #aaa; text-decoration: none; margin-left: 20px; font-weight: bold; transition: 0.3s; }
+        .nav-links a:hover { color: white; }
+        .logout-btn { color: #ff4444 !important; }
 
         .container { display: flex; gap: 40px; flex-wrap: wrap; }
         
-        /* SOL: PANELLER */
         .panel-list { flex: 2; min-width: 300px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
         
@@ -35,7 +37,6 @@
         
         .delete-btn { position: absolute; top: 10px; right: 10px; color: #ff4444; }
 
-        /* SAĞ: YENİ EKLE */
         .add-box { 
             flex: 1; min-width: 250px; max-width: 350px; 
             background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; height: fit-content; 
@@ -47,7 +48,11 @@
 <body>
     <div class="header">
         <h1>YÖNETİM MERKEZİ</h1>
-        <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Çıkış</a>
+        <div class="nav-links">
+            <a href="/settings"><i class="fas fa-cog"></i> Hesap Bilgileri</a>
+            
+            <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Çıkış</a>
+        </div>
     </div>
 
     <div class="container">

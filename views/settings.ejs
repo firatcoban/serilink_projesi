@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Hesap Ayarları 🔒</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .box { 
+            background: rgba(30, 41, 59, 0.9); padding: 40px; border-radius: 20px; 
+            width: 100%; max-width: 450px; border: 1px solid rgba(255,255,255,0.1); 
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        h2 { text-align: center; margin-bottom: 30px; color: #FFD700; }
+        
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #aaa; }
+        input { 
+            width: 100%; padding: 14px; margin-bottom: 20px; 
+            background: rgba(0,0,0,0.3); border: 1px solid #444; 
+            border-radius: 10px; color: white; box-sizing: border-box; font-size: 16px;
+        }
+        
+        .info-note { font-size: 12px; color: #666; margin-top: -15px; margin-bottom: 15px; display: block; }
+        
+        .btn-save { width: 100%; padding: 15px; background: #FF5400; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .btn-save:hover { background: #ff2600; }
+        
+        .back-btn { display: inline-block; margin-bottom: 20px; color: #aaa; text-decoration: none; display: flex; align-items: center; gap: 5px; }
+        .back-btn:hover { color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="box">
+        <a href="/admin" class="back-btn"><i class="fas fa-arrow-left"></i> Vazgeç ve Dön</a>
+        
+        <h2>Hesap Ayarları 🔒</h2>
+
+        <form action="/settings/update" method="POST">
+            
+            <label>Görünen Ad Soyad</label>
+            <input type="text" name="ad_soyad" value="<%= user.ad_soyad %>" required>
+
+            <label>Kullanıcı Adı (Giriş Yaparken)</label>
+            <input type="text" name="username" value="<%= user.username %>" required>
+            <span class="info-note">⚠️ Bunu değiştirirsen link adresin de değişir!</span>
+
+            <label>Yeni Şifre</label>
+            <input type="password" name="password" placeholder="Değiştirmek istemiyorsan boş bırak...">
+
+            <button type="submit" class="btn-save">GÜNCELLE ✅</button>
+        </form>
+    </div>
+
+</body>
+</html>

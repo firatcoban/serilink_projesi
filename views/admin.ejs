@@ -2,131 +2,81 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yönetim Paneli 🔥</title>
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+    <title>Yönetim Merkezi | Serilink</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root { --db-orange: #FF5400; --db-gold: #FFD700; --glass-dark: rgba(5, 28, 59, 0.8); }
-        body { 
-            background: radial-gradient(circle at center, #0b2e5a 0%, #000000 100%); 
-            min-height: 100vh; font-family: 'Poppins', sans-serif; margin: 0; padding: 40px;
-            color: white; overflow-x: hidden;
-        }
-        body::before { 
-            content: ""; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            width: 80vw; height: 80vh; background-image: url('/images/shenron.png'); 
-            background-repeat: no-repeat; background-position: center; background-size: contain; 
-            opacity: 0.1; z-index: -1; pointer-events: none;
-        }
+        body { background: #0f172a; color: white; font-family: 'Poppins', sans-serif; padding: 40px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; }
+        h1 { margin: 0; background: linear-gradient(to right, #FFD700, #FF5400); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logout-btn { color: #ff4444; text-decoration: none; font-weight: bold; font-size: 18px; }
 
-        h1 { 
-            text-align: center; font-family: 'Bangers'; font-size: 48px; margin-bottom: 40px; 
-            background: linear-gradient(to right, var(--db-gold), var(--db-orange)); 
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-        }
-
-        .main-wrapper {
-            display: flex; flex-wrap: wrap; justify-content: center; gap: 50px;
-            max-width: 1200px; margin: 0 auto;
-        }
-
-        /* SOL TARA: KULLANICI KARTLARI */
-        .users-section { flex: 2; min-width: 300px; }
-        .section-title { font-size: 20px; margin-bottom: 20px; border-bottom: 2px solid var(--db-orange); display: inline-block; }
+        .container { display: flex; gap: 40px; flex-wrap: wrap; }
         
-        .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
-
-        .user-card {
-            background: var(--glass-dark); border: 1px solid rgba(255, 215, 0, 0.2); 
-            border-radius: 20px; padding: 20px; text-align: center; position: relative;
-            transition: 0.3s;
-        }
-        .user-card:hover { transform: translateY(-5px); border-color: var(--db-orange); }
-
-        .user-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--db-gold); margin-bottom: 10px; }
-        .user-name { font-weight: bold; margin-bottom: 10px; display: block; }
+        /* SOL: PANELLER */
+        .panel-list { flex: 2; min-width: 300px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
         
-        .go-btn { 
-            background: var(--db-orange); color: white; text-decoration: none; 
-            padding: 8px 15px; border-radius: 20px; font-size: 14px; display: inline-block; 
+        .card { 
+            background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 15px; padding: 20px; text-align: center; position: relative; transition: 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); border-color: #FF5400; }
+        
+        .card img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 2px solid #FFD700; }
+        .card h3 { margin: 0 0 5px 0; font-size: 18px; }
+        .card span { font-size: 12px; color: #aaa; }
+        
+        .manage-btn { 
+            display: block; margin-top: 15px; background: #FF5400; color: white; 
+            text-decoration: none; padding: 8px; border-radius: 8px; font-weight: bold; 
         }
         
-        /* SİLME BUTONU (KARTIN KÖŞESİNDE) */
-        .delete-user-btn {
-            position: absolute; top: 10px; right: 10px; color: #ff4444; 
-            background: rgba(0,0,0,0.5); width: 25px; height: 25px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; text-decoration: none;
-            font-size: 12px; transition: 0.3s;
-        }
-        .delete-user-btn:hover { background: #ff4444; color: white; }
+        .delete-btn { position: absolute; top: 10px; right: 10px; color: #ff4444; }
 
-
-        /* SAĞ TARAF: YENİ EKLEME FORMU */
-        .create-section { 
-            flex: 1; min-width: 300px; max-width: 400px; 
-            background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 25px;
-            border: 1px solid rgba(255,255,255,0.1); height: fit-content;
+        /* SAĞ: YENİ EKLE */
+        .add-box { 
+            flex: 1; min-width: 250px; max-width: 350px; 
+            background: rgba(255,255,255,0.05); padding: 25px; border-radius: 15px; height: fit-content; 
         }
-        
-        input { 
-            width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.3); 
-            border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; 
-            box-sizing: border-box;
-        }
-        .create-btn {
-            width: 100%; background: linear-gradient(90deg, #11998e, #38ef7d); 
-            color: white; padding: 12px; border: none; border-radius: 10px; 
-            font-weight: bold; cursor: pointer; transition: 0.3s;
-        }
-        .create-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(56, 239, 125, 0.4); }
-
-        .logout-float { position: absolute; top: 20px; right: 20px; color: #ff4444; font-size: 24px; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.2); border: 1px solid #444; border-radius: 5px; color: white; }
+        button { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>YÖNETİM MERKEZİ</h1>
+        <a href="/logout" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Çıkış</a>
+    </div>
 
-    <a href="/logout" class="logout-float" title="Çıkış"><i class="fas fa-sign-out-alt"></i></a>
-
-    <h1>PANEL YÖNETİMİ 🛠️</h1>
-
-    <div class="main-wrapper">
-        
-        <div class="users-section">
-            <div class="section-title">Mevcut Paneller</div>
-            <div class="cards-grid">
+    <div class="container">
+        <div class="panel-list">
+            <h3>📂 Mevcut Paneller</h3>
+            <div class="grid">
                 <% users.forEach(user => { %>
-                    <div class="user-card">
-                        <a href="/admin/delete-user/<%= user.id %>" class="delete-user-btn" onclick="return confirm('Bu paneli ve tüm linklerini silmek istediğine emin misin?')" title="Paneli Sil">
-                            <i class="fas fa-trash"></i>
-                        </a>
-
-                        <img src="<%= user.resim_url %>" class="user-img">
-                        <span class="user-name"><%= user.ad_soyad %></span>
-                        <a href="/admin/<%= user.username %>" class="go-btn">Yönet 👉</a>
+                    <div class="card">
+                        <% if(user.id != activeId) { %>
+                            <a href="/admin/delete-user/<%= user.id %>" class="delete-btn" onclick="return confirm('Sil?')"><i class="fas fa-trash"></i></a>
+                        <% } %>
+                        <img src="<%= user.resim_url %>">
+                        <h3><%= user.ad_soyad %></h3>
+                        <span><%= user.link_sayisi %> Link</span>
+                        <a href="/admin/<%= user.username %>" class="manage-btn">YÖNET</a>
                     </div>
                 <% }); %>
             </div>
         </div>
 
-        <div class="create-section">
-            <div class="section-title">Yeni Panel Oluştur</div>
+        <div class="add-box">
+            <h3>+ Yeni Panel Oluştur</h3>
             <form action="/admin/create-user" method="POST">
-                <label>Kullanıcı Adı (İngilizce):</label>
-                <input type="text" name="username" placeholder="ornek_kullanici" required>
-                
-                <label>Görünecek İsim:</label>
-                <input type="text" name="ad_soyad" placeholder="Ahmet Yılmaz" required>
-                
-                <label>Şifre:</label>
-                <input type="password" name="password" placeholder="******" required>
-                
-                <button type="submit" class="create-btn">PANELİ OLUŞTUR ✨</button>
+                <input type="text" name="username" placeholder="Kullanıcı Adı (örn: ali)" required>
+                <input type="text" name="ad_soyad" placeholder="Ad Soyad" required>
+                <input type="password" name="password" placeholder="Şifre" required>
+                <button type="submit">OLUŞTUR</button>
             </form>
         </div>
-
     </div>
-
 </body>
 </html>

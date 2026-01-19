@@ -66,6 +66,7 @@
         .links { margin-top: 20px; font-size: 14px; color: #94a3b8; }
         .links a { color: #818cf8; text-decoration: none; font-weight: 500; }
         
+        /* Şifremi Unuttum Linki */
         .forgot-pass { 
             display: inline-block; 
             margin-top: 15px; 
@@ -73,6 +74,7 @@
             font-size: 13px; 
             text-decoration: none; 
             cursor: pointer;
+            transition: 0.3s;
         }
         .forgot-pass:hover { color: #94a3b8; }
     </style>
@@ -87,7 +89,7 @@
             <button type="submit" class="btn">Giriş Yap</button>
         </form>
 
-        <a onclick="alert('Lütfen yönetici (Fırat Çoban) ile iletişime geçin. Şifreniz panelden sıfırlanacaktır.')" class="forgot-pass">
+        <a href="/forgot-password" class="forgot-pass">
             Şifremi Unuttum?
         </a>
 

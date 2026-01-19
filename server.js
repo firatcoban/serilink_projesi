@@ -56,20 +56,14 @@ app.get('/login', (req, res) => { res.render('login'); });
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    
     db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
         if (err) return res.send(`<h1 style="color:red">DB HATASI!</h1><p>${err.message}</p>`);
 
         if (results.length > 0) {
             const user = results[0];
-            
-            // Eğer şifre sütunu yoksa veya veri boşsa
-            if (!user.password) {
-                return res.send(`<h1>HATA: Şifre sütunu eksik!</h1><br><a href="/onar">Zorla Onar</a>`);
-            }
+            if (!user.password) return res.send(`<h1>HATA: Şifre sütunu eksik!</h1><br><a href="/onar">Zorla Onar</a>`);
 
             const match = await bcrypt.compare(password, user.password);
-            
             if (match) {
                 req.session.userId = user.id;
                 req.session.username = user.username;
@@ -99,11 +93,10 @@ app.post('/register', async (req, res) => {
     const { username, ad_soyad, password } = req.body;
     try {
         const hashed = await bcrypt.hash(password, 10);
-        // Hata verirse direkt ekrana basacağız
         db.query('INSERT INTO users (username, ad_soyad, password, resim_url) VALUES (?, ?, ?, ?)', 
             [username, ad_soyad, hashed, '/images/logo.jpg'], 
             (err) => {
-                if(err) return res.send(`<h1 style="color:red">KAYIT HATASI</h1><p>${err.message}</p><p>Lütfen <a href="/onar">/onar</a> sayfasına git.</p>`);
+                if(err) return res.send(`<h1 style="color:red">KAYIT HATASI</h1><p>${err.message}</p>`);
                 res.redirect('/login');
             });
     } catch (error) {
@@ -111,49 +104,40 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// 5. SİSTEMİ ONAR (BALYOZ YÖNTEMİ 🔨)
+// 5. TEMİZLİKÇİ (BU YENİ EKLENDİ - O İKİ PANELİ SİLER) 🧹
+app.get('/temizle', (req, res) => {
+    // Fırat, Buğra ve eski versiyonlarını siler
+    const sql = "DELETE FROM users WHERE username IN ('firat', 'bugra', 'BuGüzelsoy')";
+    db.query(sql, (err) => {
+        if(err) return res.send("Silme Hatası: " + err.message);
+        res.send(`
+            <h1>🧹 TEMİZLİK TAMAM!</h1>
+            <p>Varsayılan paneller (Fırat ve Buğra) silindi.</p>
+            <p>Artık kendi kullanıcını oluşturabilirsin.</p>
+            <br>
+            <a href="/register" style="font-size:20px; color: hotpink;">👉 Yeni Kayıt Oluştur</a>
+        `);
+    });
+});
+
+// 6. SİSTEMİ ONAR (Gerekirse diye kalsın)
 app.get('/onar', async (req, res) => {
     const defaultHash = await bcrypt.hash("123456", 10);
-
-    // 1. Önce Tabloyu Garantiye Al
-    const createTable = `
-        CREATE TABLE IF NOT EXISTS users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            username VARCHAR(50) UNIQUE NOT NULL,
-            ad_soyad VARCHAR(100),
-            resim_url TEXT
-        );
-    `;
-
-    // 2. Şifre Sütununu ZORLA Ekle (IF NOT EXISTS kullanmadan - Eski sürüm uyumlu)
+    const createTable = `CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) UNIQUE NOT NULL, ad_soyad VARCHAR(100), resim_url TEXT);`;
     const addColumn = "ALTER TABLE users ADD password VARCHAR(255)";
-
-    db.query(createTable, (err1) => {
-        if (err1) return res.send("Tablo hatası: " + err1.message);
-
-        // Sütunu eklemeyi dene
-        db.query(addColumn, (err2) => {
-            // Hata olsa bile (Sütun zaten varsa hata verir) devam ediyoruz.
-            // Önemli olan sütunun orada olması.
-            
-            // Kullanıcıları ekle/güncelle
+    
+    db.query(createTable, () => {
+        db.query(addColumn, () => {
             const insertUser = `INSERT INTO users (username, ad_soyad, password, resim_url) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE password = VALUES(password)`;
-            
             db.query(insertUser, ['firat', 'Fırat Çoban', defaultHash, '/images/logo.jpg']);
             db.query(insertUser, ['bugra', 'Buğra Güzelsoy', defaultHash, '/images/logo.jpg'], () => {
-                 res.send(`
-                    <h1>✅ TAMİR EDİLDİ!</h1>
-                    <p>Şifre sütunu zorla eklendi.</p>
-                    <p>Fırat ve Buğra için şifre: <b>123456</b></p>
-                    <br>
-                    <a href="/login" style="font-size:20px;">👉 Giriş Yap</a>
-                 `);
+                 res.send("<h1>✅ ONARILDI!</h1><a href='/login'>Giriş Yap</a>");
             });
         });
     });
 });
 
-// ... Diğer rotalar (logout, admin/:user, profile, vb.) ...
+// ... Diğer Rotalar ...
 app.get('/logout', (req, res) => { req.session.destroy(() => res.redirect('/login')); });
 
 app.get('/admin/:username', (req, res) => {
@@ -193,7 +177,7 @@ app.get('/delete/:id', (req, res) => {
 
 app.get('/:kullaniciadi', (req, res) => {
     const k = req.params.kullaniciadi;
-    if(['admin','login','register','logout','add','edit','delete','onar'].includes(k)) return;
+    if(['admin','login','register','logout','add','edit','delete','onar','temizle'].includes(k)) return;
     db.query('SELECT * FROM users WHERE username=?', [k], (e, u) => {
         if(!u || !u.length) return res.send("Kullanıcı yok");
         db.query('SELECT * FROM links WHERE user_id=? ORDER BY id DESC', [u[0].id], (err, l) => res.render('index', {profile:u[0], links:l}));

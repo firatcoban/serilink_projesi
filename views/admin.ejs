@@ -35,7 +35,12 @@
             text-decoration: none; padding: 8px; border-radius: 8px; font-weight: bold; 
         }
         
-        .delete-btn { position: absolute; top: 10px; right: 10px; color: #ff4444; }
+        /* BUTONLAR (SİLME VE SIFIRLAMA) */
+        .delete-btn { position: absolute; top: 10px; right: 10px; color: #ff4444; font-size: 16px; transition: 0.3s; }
+        .delete-btn:hover { transform: scale(1.2); color: white; }
+
+        .reset-btn { position: absolute; top: 10px; left: 10px; color: #FFD700; font-size: 16px; transition: 0.3s; }
+        .reset-btn:hover { transform: scale(1.2); color: white; text-shadow: 0 0 10px #FFD700; }
 
         .add-box { 
             flex: 1; min-width: 250px; max-width: 350px; 
@@ -62,8 +67,15 @@
                 <% users.forEach(user => { %>
                     <div class="card">
                         <% if(user.id != activeId) { %>
-                            <a href="/admin/delete-user/<%= user.id %>" class="delete-btn" onclick="return confirm('Sil?')"><i class="fas fa-trash"></i></a>
+                            <a href="/admin/delete-user/<%= user.id %>" class="delete-btn" onclick="return confirm('Bu kullanıcıyı ve tüm linklerini silmek istediğine emin misin?')" title="Paneli Sil">
+                                <i class="fas fa-trash"></i>
+                            </a>
+
+                            <a href="/admin/reset-password/<%= user.id %>" class="reset-btn" onclick="return confirm('Bu kullanıcının şifresini 123456 yapmak istiyor musun?')" title="Şifreyi 123456 Yap">
+                                <i class="fas fa-key"></i>
+                            </a>
                         <% } %>
+
                         <img src="<%= user.resim_url %>">
                         <h3><%= user.ad_soyad %></h3>
                         <span><%= user.link_sayisi %> Link</span>

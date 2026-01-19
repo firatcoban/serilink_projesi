@@ -85,6 +85,21 @@ app.get('/admin', girisZorunlu, (req, res) => {
     });
 });
 
+// 🔥 ŞİFRE SIFIRLAMA (ADMİN YETKİSİ) 🔥
+app.get('/admin/reset-password/:id', girisZorunlu, async (req, res) => {
+    // Güvenlik: Kimse adminin (senin) şifreni sıfırlayamasın
+    if(req.params.id == req.session.userId) return res.send("<h1>Kendi şifreni buradan sıfırlayamazsın!</h1><a href='/settings'>Ayarlardan Değiştir</a>");
+
+    const defaultHash = await bcrypt.hash("123456", 10);
+    
+    db.query("UPDATE users SET password = ? WHERE id = ?", [defaultHash, req.params.id], (err) => {
+        if(err) return res.send("Hata: " + err.message);
+        
+        // İşlem bitince geri dön ama URL'ye 'reset=ok' ekle ki uyarı gösterelim
+        res.redirect('/admin?msg=sifre_sifirlandi');
+    });
+});
+
 // 🔥🔥🔥 DEDEKTİF MODU: AYARLAR SAYFASI 🔥🔥🔥
 app.get('/settings', girisZorunlu, (req, res) => {
     db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {

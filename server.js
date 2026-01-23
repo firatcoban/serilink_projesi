@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v16_final_fix',
+    secret: 'gizli_anahtar_serilink_v17_final_fix',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -29,20 +29,24 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 🔥 MAİL AYARLARI (GÜÇLENDİRİLMİŞ BAĞLANTI) 🔥
-// Connection timeout hatası için Port 465 ve SSL kullanıyoruz.
+// 🔥 MAİL AYARLARI (PORT 587 - DAHA GÜVENLİ BAĞLANTI) 🔥
+// Timeout hatasını çözmek için Port 587 kullanıyoruz.
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // SSL kullanımı (Timeout'u engeller)
+    port: 587,                 // 465 yerine 587 kullanıyoruz (Timeout çözümü)
+    secure: false,             // 587 için false olmalı
+    requireTLS: true,
     auth: {
         user: 'frtcbn65@gmail.com', 
         // ⚠️ BURAYA GOOGLE UYGULAMA ŞİFRENİ YAZ (16 Hane)
         pass: 'autm fxbz celj uzpr' 
     },
     tls: {
-        rejectUnauthorized: false // Ekstra bağlantı izni
-    }
+        ciphers: 'SSLv3',
+        rejectUnauthorized: false
+    },
+    connectionTimeout: 10000, // 10 Saniye bekle (Hemen pes etme)
+    greetingTimeout: 10000
 });
 
 // DB BAĞLANTISI
@@ -55,28 +59,6 @@ const db = mysql.createPool({
     connectionLimit: 10,
     queueLimit: 0,
     multipleStatements: true
-});
-
-// 🔥🔥🔥 OTOMATİK TAMİR MODÜLÜ (SERVER BAŞLARKEN ÇALIŞIR) 🔥🔥🔥
-// Sen sayfaya girmeden, sunucu açıldığı an bu kod çalışır ve eksikleri tamamlar.
-db.getConnection((err, connection) => {
-    if (err) {
-        console.error("❌ DB Bağlantı Hatası:", err.message);
-    } else {
-        console.log("✅ DB Bağlandı. Otomatik Onarım Başlatılıyor...");
-        
-        // 1. Email sütununu ekle (Varsa hata vermez, geçer)
-        connection.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE", (e) => {
-            if(!e) console.log("✅ Email Sütunu Kontrol Edildi/Eklendi.");
-        });
-
-        // 2. Reset Code sütununu ekle
-        connection.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10)", (e) => {
-            if(!e) console.log("✅ Reset Code Sütunu Kontrol Edildi/Eklendi.");
-        });
-        
-        connection.release();
-    }
 });
 
 const girisZorunlu = (req, res, next) => {
@@ -125,14 +107,18 @@ app.post('/send-code', (req, res) => {
     console.log("Mail işlemi başladı:", email);
 
     db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-        if(err) return res.send(`<h1>DB HATASI!</h1><p>${err.message}</p><p>Lütfen 1-2 dakika bekle, otomatik onarım çalışıyor olabilir. Sonra sayfayı yenile.</p>`);
+        // DB HATASI YAKALAMA
+        if(err) {
+            console.error("DB Hatası:", err);
+            return res.send(`<h1>VERİTABANI HATASI!</h1><p>${err.message}</p><p>Sütunlar henüz eklenmemiş olabilir. Sayfayı yenileyip tekrar dene.</p>`);
+        }
 
         if(results.length === 0) {
             return res.send(`
                 <div style="text-align:center; padding:50px; font-family:sans-serif; background:#0f172a; color:white; height:100vh;">
                     <h1>❌ E-posta Bulunamadı</h1>
                     <p>Bu mail adresi sistemde yok.</p>
-                    <p><b>Çözüm:</b> Giriş yapıp 'Hesap Bilgileri'nden mailini ekledin mi?</p>
+                    <p>Eğer giriş yapamıyorsan mailini ekleyemezsin. Bu durumda veritabanı yöneticisi (sen) elle eklemelisin.</p>
                     <a href='/forgot-password' style="color:yellow">Geri</a>
                 </div>
             `);
@@ -145,26 +131,21 @@ app.post('/send-code', (req, res) => {
                 from: '"Serilink Destek" <frtcbn65@gmail.com>',
                 to: email,
                 subject: '🔑 Sıfırlama Kodun',
-                html: `
-                    <div style="background:#f3f4f6; padding:20px; text-align:center; font-family:Arial;">
-                        <h2 style="color:#1f2937;">Şifre Sıfırlama İsteği</h2>
-                        <p>Hesabın için şifre sıfırlama kodu oluşturuldu:</p>
-                        <h1 style="color:#4f46e5; font-size:32px; letter-spacing:5px; background:white; display:inline-block; padding:10px 20px; border-radius:10px;">${code}</h1>
-                        <p style="color:#6b7280; font-size:12px; margin-top:20px;">Bu kodu sen istemediysen, bu maili dikkate alma.</p>
-                    </div>
-                `
+                html: `<h1>${code}</h1><p>Kodunuz budur.</p>`
             };
 
+            // Mail Gönderimi (Hata Detaylı)
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    console.error("Mail Hatası:", error);
+                    console.error("Nodemailer Hatası:", error);
                     return res.send(`
-                        <div style="padding:40px; font-family:monospace; color:red;">
-                            <h1>MAIL GÖNDERİLEMEDİ! (Timeout Çözümü Denendi)</h1>
-                            <p><b>Hata:</b> ${error.message}</p>
+                        <div style="padding:20px; color:red; font-family:monospace;">
+                            <h1>MAIL GÖNDERİLEMEDİ (Hata Detayı)</h1>
+                            <p><b>Hata Kodu:</b> ${error.code}</p>
+                            <p><b>Mesaj:</b> ${error.message}</p>
                             <hr>
-                            <p>Eğer "Invalid login" diyorsa şifren yanlıştır.</p>
-                            <p>Eğer hala "Timeout" diyorsa Render.com bazen mail portlarını engeller.</p>
+                            <p>Eğer 'ETIMEDOUT' görüyorsan Gmail sunucusu cevap vermiyor.</p>
+                            <p>Eğer 'EAUTH' görüyorsan şifren yanlıştır.</p>
                             <a href="/forgot-password">Geri Dön</a>
                         </div>
                     `);
@@ -222,7 +203,7 @@ app.post('/settings/update', girisZorunlu, async (req, res) => {
     }
 
     db.query(sql, params, (err) => {
-        if(err) return res.send("Güncelleme Hatası (Email kullanılıyor olabilir): " + err.message);
+        if(err) return res.send("Güncelleme Hatası: " + err.message);
         req.session.username = username;
         req.session.ad_soyad = ad_soyad;
         res.redirect('/admin');
@@ -301,5 +282,30 @@ app.get('/git/:id', (req, res) => {
     });
 });
 
+
+// 🔥🔥🔥 OTOMATİK TAMİR SİSTEMİ (SUNUCU BAŞLAYINCA ÇALIŞIR) 🔥🔥🔥
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Sistem Hazır!`));
+app.listen(PORT, () => {
+    console.log(`🚀 Sistem Hazır! Port: ${PORT}`);
+    
+    // DB bağlantısını test et ve eksik sütunları ekle
+    db.getConnection((err, conn) => {
+        if(err) {
+            console.error("❌ Veritabanına Bağlanılamadı:", err.message);
+        } else {
+            console.log("✅ Veritabanı Bağlantısı Başarılı. Tablolar kontrol ediliyor...");
+            
+            // EMAIL Sütununu Ekle
+            conn.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE", (e) => {
+                if(!e) console.log("✅ Email sütunu hazır.");
+                else console.log("⚠️ Email sütunu uyarısı:", e.message);
+            });
+            
+            // RESET CODE Sütununu Ekle
+            conn.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10)", (e) => {
+                if(!e) console.log("✅ Reset Code sütunu hazır.");
+                else console.log("⚠️ Reset Code sütunu uyarısı:", e.message);
+            });
+        }
+    });
+});

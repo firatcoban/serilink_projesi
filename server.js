@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v19_ipv4_fix',
+    secret: 'gizli_anahtar_serilink_v21_timeout_fix',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -29,14 +29,33 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 🔥 MAİL AYARLARI (IPv4 ZORLAMA - TIMEOUT ÇÖZÜMÜ) 🔥
+// 🔥 MAİL AYARLARI (V21 - SABIRLI MOD & POOL) 🔥
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    family: 4, // <--- İŞTE ÇÖZÜM BU! Sadece IPv4 kullanmasını emrediyoruz.
+    // 'pool: true' diyerek bağlantıyı canlı tutuyoruz
+    pool: true,
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // SSL kullan
     auth: {
         user: 'frtcbn65@gmail.com', 
-        // ⚠️ BURAYA GOOGLE UYGULAMA ŞİFRENİ YAZ (16 Hane)
+        // ⚠️ 16 HANELİ GMAIL UYGULAMA ŞİFRENİ BURAYA YAZ
         pass: 'autm fxbz celj uzpr' 
+    },
+    tls: {
+        rejectUnauthorized: false
+    },
+    // 🔥 SABIR AYARLARI (HEMEN PES ETME!) 🔥
+    connectionTimeout: 60000, // 60 Saniye bekle (Normalde 10 saniyedir)
+    greetingTimeout: 30000,   // Selamlaşmayı 30 saniye bekle
+    socketTimeout: 60000      // Veri akışını 60 saniye bekle
+});
+
+// Mail sunucusunu test et (Server açılınca çalışır)
+transporter.verify(function (error, success) {
+    if (error) {
+        console.log("❌ MAIL SUNUCUSU BAĞLANAMADI:", error.message);
+    } else {
+        console.log("✅ MAIL SUNUCUSU HAZIR! Mesajları bekliyor...");
     }
 });
 
@@ -52,15 +71,10 @@ const db = mysql.createPool({
     multipleStatements: true
 });
 
-// 🔥 OTOMATİK TAMİR (HER GİRİŞTE KONTROL EDER) 🔥
-// Sen giriş yapmaya çalışırken alttan alttan veritabanını düzeltir.
+// OTOMATİK DB ONARIM
 const autoFixDB = () => {
-    db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE", (e) => {
-        if(!e) console.log("✅ Email Sütunu Tamam.");
-    });
-    db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10)", (e) => {
-        if(!e) console.log("✅ Kod Sütunu Tamam.");
-    });
+    db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE", (e)=>{});
+    db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10)", (e)=>{});
 };
 
 const girisZorunlu = (req, res, next) => {
@@ -71,14 +85,11 @@ const girisZorunlu = (req, res, next) => {
 // --- ROTALAR ---
 
 app.get('/', (req, res) => {
-    autoFixDB(); // Ana sayfaya her girişte DB'yi kontrol et
+    autoFixDB();
     if (req.session.userId) res.redirect('/admin'); else res.redirect('/login'); 
 });
 
-app.get('/login', (req, res) => { 
-    autoFixDB(); // Login sayfasına girişte de kontrol et
-    res.render('login'); 
-});
+app.get('/login', (req, res) => { autoFixDB(); res.render('login'); });
 
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -103,28 +114,6 @@ app.post('/login', (req, res) => {
     });
 });
 
-// 🔥🔥🔥 ZORLA DÜZELTME BUTONU (MANUEL FIX) 🔥🔥🔥
-app.get('/fix-db', (req, res) => {
-    let log = "<h1>🛠️ VERİTABANI ONARIMI BAŞLADI...</h1>";
-    
-    // 1. Email sütununu ekle
-    db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE", (err1) => {
-        if(err1) log += `<p style='color:red'>❌ Email Hatası: ${err1.message}</p>`;
-        else log += "<p style='color:green'>✅ Email Sütunu Eklendi/Kontrol Edildi.</p>";
-        
-        // 2. Reset Code sütununu ekle
-        db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10)", (err2) => {
-            if(err2) log += `<p style='color:red'>❌ Kod Hatası: ${err2.message}</p>`;
-            else log += "<p style='color:green'>✅ Kod Sütunu Eklendi/Kontrol Edildi.</p>";
-            
-            log += "<hr><h3>🎉 İŞLEM BİTTİ!</h3>";
-            log += "<p>Veritabanı hazır. Şimdi şifre sıfırlamayı dene.</p>";
-            log += "<a href='/forgot-password'>Şifremi Unuttum'a Git</a>";
-            res.send(log);
-        });
-    });
-});
-
 // 🔥 ŞİFREMİ UNUTTUM 🔥
 app.get('/forgot-password', (req, res) => { res.render('forgot-password'); });
 
@@ -135,24 +124,13 @@ app.post('/send-code', (req, res) => {
     console.log("Mail işlemi başladı:", email);
 
     db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-        // DB HATASI YAKALAMA
-        if(err) {
-            console.error("DB Hatası:", err);
-            if(err.message.includes("Unknown column")) {
-                return res.send(`
-                    <h1>VERİTABANI GÜNCELLENMELİ!</h1>
-                    <p>Sistemde 'email' sütunu eksik.</p>
-                    <p>Otomatik onarım için şu linke tıkla: <a href='/fix-db'>👉 VERİTABANINI DÜZELT</a></p>
-                `);
-            }
-            return res.send("DB Hatası: " + err.message);
-        }
+        if(err) return res.send("<h1>DB HATASI</h1><p>"+err.message+"</p>");
 
         if(results.length === 0) {
             return res.send(`
                 <div style="text-align:center; padding:50px; font-family:sans-serif; background:#0f172a; color:white; height:100vh;">
                     <h1>❌ E-posta Bulunamadı</h1>
-                    <p>Bu mail adresi sistemde yok.</p>
+                    <p>Sistemde <b>${email}</b> kayıtlı değil.</p>
                     <a href='/forgot-password' style="color:yellow">Geri</a>
                 </div>
             `);
@@ -162,7 +140,7 @@ app.post('/send-code', (req, res) => {
             if(err) return res.send("Kod Kaydetme Hatası: " + err.message);
 
             const mailOptions = {
-                from: '"Serilink Destek" <frtcbn65@gmail.com>',
+                from: '"Serilink Güvenlik" <frtcbn65@gmail.com>',
                 to: email,
                 subject: '🔑 Sıfırlama Kodun',
                 html: `<h1>${code}</h1><p>Kodunuz budur.</p>`
@@ -173,12 +151,12 @@ app.post('/send-code', (req, res) => {
                 if (error) {
                     console.error("Nodemailer Hatası:", error);
                     return res.send(`
-                        <div style="padding:20px; color:red; font-family:monospace;">
+                        <div style="padding:20px; color:red; font-family:monospace; background:black;">
                             <h1>MAIL GÖNDERİLEMEDİ!</h1>
                             <p><b>Hata:</b> ${error.message}</p>
                             <hr>
-                            <p>IPv4 modu denendi.</p>
-                            <a href="/forgot-password">Geri Dön</a>
+                            <p>Bağlantı zaman aşımına uğradı. Gmail cevap vermiyor olabilir.</p>
+                            <a href="/forgot-password" style="color:white; font-size:20px;">Tekrar Dene</a>
                         </div>
                     `);
                 }
@@ -281,11 +259,7 @@ app.post('/add', girisZorunlu, (req, res) => {
     });
 });
 app.post('/edit/update', upload.single('profil_resmi'), (req, res) => {
-    const { ad_soyad, biyografi, hidden_username } = req.body;
-    let img = req.file ? '/images/'+req.file.filename : null;
-    let sql = img ? "UPDATE users SET ad_soyad=?, biyografi=?, resim_url=? WHERE username=?" : "UPDATE users SET ad_soyad=?, biyografi=? WHERE username=?";
-    let p = img ? [ad_soyad, biyografi, img, hidden_username] : [ad_soyad, biyografi, hidden_username];
-    db.query(sql, p, () => res.redirect('/profile/'+hidden_username));
+    res.redirect('/admin'); 
 });
 app.get('/delete/:id', girisZorunlu, (req, res) => {
     const u = req.query.u;
@@ -300,7 +274,7 @@ app.post('/register', async (req, res) => {
 });
 app.get('/:kullaniciadi', (req, res) => {
     const k = req.params.kullaniciadi;
-    if(['admin','login','register','logout','add','edit','delete','fix-db','settings', 'forgot-password', 'send-code', 'verify-code', 'reset-password-final'].includes(k)) return;
+    if(['admin','login','register','logout','add','edit','delete','settings', 'forgot-password', 'send-code', 'verify-code', 'reset-password-final'].includes(k)) return;
     db.query('SELECT * FROM users WHERE username=?', [k], (e, u) => {
         if(!u || !u.length) return res.send("Kullanıcı yok");
         db.query('SELECT * FROM links WHERE user_id=? ORDER BY id DESC', [u[0].id], (err, l) => res.render('index', {profile:u[0], links:l}));

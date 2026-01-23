@@ -5,7 +5,7 @@ const path = require('path');
 const multer = require('multer');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer'); 
 
 const app = express();
 
@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v14_fix',
+    secret: 'gizli_anahtar_serilink_v16_final_fix',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -29,21 +29,27 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 🔥 MAİL AYARLARI (BURAYI DOLDURMAYI UNUTMA) 🔥
+// 🔥 MAİL AYARLARI (GÜÇLENDİRİLMİŞ BAĞLANTI) 🔥
+// Connection timeout hatası için Port 465 ve SSL kullanıyoruz.
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // SSL kullanımı (Timeout'u engeller)
     auth: {
-        user: 'frtcbn65@gmail.com',
-        // ⚠️ Google'dan aldığın 16 haneli Uygulama Şifresini buraya yaz:
-        pass: 'autm fxbz celj uzpr'
+        user: 'frtcbn65@gmail.com', 
+        // ⚠️ BURAYA GOOGLE UYGULAMA ŞİFRENİ YAZ (16 Hane)
+        pass: 'autm fxbz celj uzpr' 
+    },
+    tls: {
+        rejectUnauthorized: false // Ekstra bağlantı izni
     }
 });
 
 // DB BAĞLANTISI
 const db = mysql.createPool({
-    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',
-    user: 'uzzt3cxlzejgx2x3',
-    password: 'cI3z7JLs2OHiQ23zOj4M',
+    host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',           
+    user: 'uzzt3cxlzejgx2x3',           
+    password: 'cI3z7JLs2OHiQ23zOj4M',   
     database: 'b9jczsecmhesvtz8fkx0',
     waitForConnections: true,
     connectionLimit: 10,
@@ -51,52 +57,37 @@ const db = mysql.createPool({
     multipleStatements: true
 });
 
-// GİRİŞ KONTROLÜ
+// 🔥🔥🔥 OTOMATİK TAMİR MODÜLÜ (SERVER BAŞLARKEN ÇALIŞIR) 🔥🔥🔥
+// Sen sayfaya girmeden, sunucu açıldığı an bu kod çalışır ve eksikleri tamamlar.
+db.getConnection((err, connection) => {
+    if (err) {
+        console.error("❌ DB Bağlantı Hatası:", err.message);
+    } else {
+        console.log("✅ DB Bağlandı. Otomatik Onarım Başlatılıyor...");
+        
+        // 1. Email sütununu ekle (Varsa hata vermez, geçer)
+        connection.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE", (e) => {
+            if(!e) console.log("✅ Email Sütunu Kontrol Edildi/Eklendi.");
+        });
+
+        // 2. Reset Code sütununu ekle
+        connection.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10)", (e) => {
+            if(!e) console.log("✅ Reset Code Sütunu Kontrol Edildi/Eklendi.");
+        });
+        
+        connection.release();
+    }
+});
+
 const girisZorunlu = (req, res, next) => {
     if (!req.session.userId) return res.redirect('/login');
     next();
 };
 
-// 🔥🔥🔥 SÜPER TAMİR ROTASI (BU LİNKE GİDİNCE KESİN DÜZELİR) 🔥🔥🔥
-app.get('/fix', (req, res) => {
-    let log = "<html><body style='background:#0f172a; color:white; font-family:sans-serif; padding:50px; text-align:center;'>";
-    log += "<h1>🛠️ VERİTABANI ZORLA TAMİR EDİLİYOR...</h1><div style='text-align:left; display:inline-block; background:#1e293b; padding:20px; border-radius:10px;'>";
-
-    // 1. Tabloyu Garantiye Al
-    db.query("CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) UNIQUE)", (err) => {
-        if(err) log += `<p style='color:red'>❌ Tablo Hatası: ${err.message}</p>`;
-        else log += "<p style='color:#4ade80'>✅ Tablo Kontrolü: OK</p>";
-
-        // 2. Email Sütununu Çak
-        db.query("ALTER TABLE users ADD COLUMN email VARCHAR(100) UNIQUE", (err1) => {
-            if(err1 && err1.code !== 'ER_DUP_FIELDNAME') log += `<p style='color:orange'>⚠️ Email Sütunu: ${err1.message}</p>`;
-            else log += "<p style='color:#4ade80'>✅ Email Sütunu: EKLENDİ / ZATEN VAR</p>";
-
-            // 3. Reset Code Sütununu Çak
-            db.query("ALTER TABLE users ADD COLUMN reset_code VARCHAR(10)", (err2) => {
-                if(err2 && err2.code !== 'ER_DUP_FIELDNAME') log += `<p style='color:orange'>⚠️ Kod Sütunu: ${err2.message}</p>`;
-                else log += "<p style='color:#4ade80'>✅ Kod Sütunu: EKLENDİ / ZATEN VAR</p>";
-
-                // 4. Diğer Eksikleri Çak
-                db.query("ALTER TABLE users ADD COLUMN ad_soyad VARCHAR(100)", () => {});
-                db.query("ALTER TABLE users ADD COLUMN password VARCHAR(255)", () => {});
-                db.query("ALTER TABLE users ADD COLUMN resim_url TEXT", () => {});
-
-                log += "</div><br><br><h2>🎉 İŞLEM TAMAMLANDI!</h2>";
-                log += "<p>Veritabanı artık 'Email' sütununu tanıyor.</p>";
-                log += "<a href='/login' style='background:#6366f1; color:white; padding:15px 30px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block; margin-top:20px;'>GİRİŞ YAP VE TEST ET -></a>";
-                log += "</body></html>";
-                res.send(log);
-            });
-        });
-    });
-});
-
 // --- ROTALAR ---
 
 app.get('/', (req, res) => {
-    // Ana sayfaya gelen herkesi önce bir kontrol edelim, eğer hata alırlarsa /fix'e yönlendirelim
-    if (req.session.userId) res.redirect('/admin'); else res.redirect('/login');
+    if (req.session.userId) res.redirect('/admin'); else res.redirect('/login'); 
 });
 
 app.get('/login', (req, res) => { res.render('login'); });
@@ -104,15 +95,11 @@ app.get('/login', (req, res) => { res.render('login'); });
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
-        // Eğer burada Unknown Column hatası alırsak kullanıcıyı direkt tamire yollayalım
-        if(err) {
-            if(err.message.includes("Unknown column")) return res.redirect('/fix');
-            return res.send("DB Hatası: " + err.message);
-        }
-
+        if(err) return res.send("DB Hatası: " + err.message);
+        
         if (results.length > 0) {
             const user = results[0];
-            const passCheck = user.password || '$2a$10$dummy';
+            const passCheck = user.password || '$2a$10$dummy'; 
             const match = await bcrypt.compare(password, passCheck);
             if (match) {
                 req.session.userId = user.id;
@@ -133,24 +120,20 @@ app.get('/forgot-password', (req, res) => { res.render('forgot-password'); });
 
 app.post('/send-code', (req, res) => {
     const { email } = req.body;
-    const code = Math.floor(100000 + Math.random() * 900000);
+    const code = Math.floor(100000 + Math.random() * 900000); 
 
-    console.log("Mail gönderiliyor: ", email);
+    console.log("Mail işlemi başladı:", email);
 
     db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-        // Hata yakalama
-        if(err) {
-            if(err.message.includes("Unknown column")) return res.redirect('/fix');
-            return res.send("DB Hatası: " + err.message);
-        }
+        if(err) return res.send(`<h1>DB HATASI!</h1><p>${err.message}</p><p>Lütfen 1-2 dakika bekle, otomatik onarım çalışıyor olabilir. Sonra sayfayı yenile.</p>`);
 
         if(results.length === 0) {
             return res.send(`
                 <div style="text-align:center; padding:50px; font-family:sans-serif; background:#0f172a; color:white; height:100vh;">
                     <h1>❌ E-posta Bulunamadı</h1>
-                    <p>Bu adres sistemde kayıtlı değil.</p>
-                    <p><b>Not:</b> Önce sisteme giriş yapıp 'Hesap Bilgileri' kısmından mailini kaydettin mi?</p>
-                    <a href='/forgot-password' style="color:#f472b6">Tekrar Dene</a>
+                    <p>Bu mail adresi sistemde yok.</p>
+                    <p><b>Çözüm:</b> Giriş yapıp 'Hesap Bilgileri'nden mailini ekledin mi?</p>
+                    <a href='/forgot-password' style="color:yellow">Geri</a>
                 </div>
             `);
         }
@@ -159,14 +142,34 @@ app.post('/send-code', (req, res) => {
             if(err) return res.send("Kod Kaydetme Hatası: " + err.message);
 
             const mailOptions = {
-                from: 'Serilink Güvenlik',
+                from: '"Serilink Destek" <frtcbn65@gmail.com>',
                 to: email,
                 subject: '🔑 Sıfırlama Kodun',
-                html: `<h1>${code}</h1><p>Bu kodu gir.</p>`
+                html: `
+                    <div style="background:#f3f4f6; padding:20px; text-align:center; font-family:Arial;">
+                        <h2 style="color:#1f2937;">Şifre Sıfırlama İsteği</h2>
+                        <p>Hesabın için şifre sıfırlama kodu oluşturuldu:</p>
+                        <h1 style="color:#4f46e5; font-size:32px; letter-spacing:5px; background:white; display:inline-block; padding:10px 20px; border-radius:10px;">${code}</h1>
+                        <p style="color:#6b7280; font-size:12px; margin-top:20px;">Bu kodu sen istemediysen, bu maili dikkate alma.</p>
+                    </div>
+                `
             };
 
             transporter.sendMail(mailOptions, (error, info) => {
-                if (error) return res.send(`<h1>Mail Gönderilemedi!</h1><p>${error.message}</p><p>Lütfen server.js dosyasındaki uygulama şifresini kontrol et.</p>`);
+                if (error) {
+                    console.error("Mail Hatası:", error);
+                    return res.send(`
+                        <div style="padding:40px; font-family:monospace; color:red;">
+                            <h1>MAIL GÖNDERİLEMEDİ! (Timeout Çözümü Denendi)</h1>
+                            <p><b>Hata:</b> ${error.message}</p>
+                            <hr>
+                            <p>Eğer "Invalid login" diyorsa şifren yanlıştır.</p>
+                            <p>Eğer hala "Timeout" diyorsa Render.com bazen mail portlarını engeller.</p>
+                            <a href="/forgot-password">Geri Dön</a>
+                        </div>
+                    `);
+                }
+                console.log("Mail başarıyla gitti:", info.response);
                 res.render('verify-code', { email: email });
             });
         });
@@ -185,7 +188,7 @@ app.post('/reset-password-final', async (req, res) => {
     const { email, new_password } = req.body;
     const hashed = await bcrypt.hash(new_password, 10);
     db.query('UPDATE users SET password = ?, reset_code = NULL WHERE email = ?', [hashed, email], (err) => {
-        res.send("<h1>✅ Başarılı!</h1><a href='/login'>Giriş Yap</a>");
+        res.send("<h1>✅ Başarılı!</h1><p>Şifren değiştirildi.</p><a href='/login'>Giriş Yap</a>");
     });
 });
 
@@ -219,10 +222,7 @@ app.post('/settings/update', girisZorunlu, async (req, res) => {
     }
 
     db.query(sql, params, (err) => {
-        if(err) {
-            if(err.message.includes("Unknown column")) return res.redirect('/fix'); // Hata alırsa düzeltsin
-            return res.send("Güncelleme Hatası: " + err.message);
-        }
+        if(err) return res.send("Güncelleme Hatası (Email kullanılıyor olabilir): " + err.message);
         req.session.username = username;
         req.session.ad_soyad = ad_soyad;
         res.redirect('/admin');
@@ -287,7 +287,7 @@ app.post('/register', async (req, res) => {
 });
 app.get('/:kullaniciadi', (req, res) => {
     const k = req.params.kullaniciadi;
-    if(['admin','login','register','logout','add','edit','delete','fix','settings', 'forgot-password', 'send-code', 'verify-code', 'reset-password-final'].includes(k)) return;
+    if(['admin','login','register','logout','add','edit','delete','settings', 'forgot-password', 'send-code', 'verify-code', 'reset-password-final'].includes(k)) return;
     db.query('SELECT * FROM users WHERE username=?', [k], (e, u) => {
         if(!u || !u.length) return res.send("Kullanıcı yok");
         db.query('SELECT * FROM links WHERE user_id=? ORDER BY id DESC', [u[0].id], (err, l) => res.render('index', {profile:u[0], links:l}));

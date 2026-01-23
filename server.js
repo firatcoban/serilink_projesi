@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v17_final_fix',
+    secret: 'gizli_anahtar_serilink_v18_service_mode',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -29,24 +29,15 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 🔥 MAİL AYARLARI (PORT 587 - DAHA GÜVENLİ BAĞLANTI) 🔥
-// Timeout hatasını çözmek için Port 587 kullanıyoruz.
+// 🔥 MAİL AYARLARI (SERVİS MODU - PORT DERDİNE SON) 🔥
+// 'service: gmail' diyerek port numarasıyla uğraşmayı bırakıyoruz.
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,                 // 465 yerine 587 kullanıyoruz (Timeout çözümü)
-    secure: false,             // 587 için false olmalı
-    requireTLS: true,
+    service: 'gmail', // <--- İŞTE SİHİRLİ KOD BU
     auth: {
         user: 'frtcbn65@gmail.com', 
         // ⚠️ BURAYA GOOGLE UYGULAMA ŞİFRENİ YAZ (16 Hane)
         pass: 'autm fxbz celj uzpr' 
-    },
-    tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
-    },
-    connectionTimeout: 10000, // 10 Saniye bekle (Hemen pes etme)
-    greetingTimeout: 10000
+    }
 });
 
 // DB BAĞLANTISI
@@ -107,18 +98,18 @@ app.post('/send-code', (req, res) => {
     console.log("Mail işlemi başladı:", email);
 
     db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-        // DB HATASI YAKALAMA
+        // DB HATA KONTROLÜ
         if(err) {
             console.error("DB Hatası:", err);
-            return res.send(`<h1>VERİTABANI HATASI!</h1><p>${err.message}</p><p>Sütunlar henüz eklenmemiş olabilir. Sayfayı yenileyip tekrar dene.</p>`);
+            return res.send(`<h1>VERİTABANI HATASI!</h1><p>${err.message}</p><p>Sütunlar otomatik ekleniyor, lütfen 30 saniye sonra tekrar dene.</p>`);
         }
 
         if(results.length === 0) {
             return res.send(`
                 <div style="text-align:center; padding:50px; font-family:sans-serif; background:#0f172a; color:white; height:100vh;">
                     <h1>❌ E-posta Bulunamadı</h1>
-                    <p>Bu mail adresi sistemde yok.</p>
-                    <p>Eğer giriş yapamıyorsan mailini ekleyemezsin. Bu durumda veritabanı yöneticisi (sen) elle eklemelisin.</p>
+                    <p>Sistemde <b>${email}</b> kayıtlı değil.</p>
+                    <p>Giriş yapıp ayarlardan eklemen lazım.</p>
                     <a href='/forgot-password' style="color:yellow">Geri</a>
                 </div>
             `);
@@ -134,18 +125,16 @@ app.post('/send-code', (req, res) => {
                 html: `<h1>${code}</h1><p>Kodunuz budur.</p>`
             };
 
-            // Mail Gönderimi (Hata Detaylı)
+            // Mail Gönderimi
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
                     console.error("Nodemailer Hatası:", error);
                     return res.send(`
                         <div style="padding:20px; color:red; font-family:monospace;">
-                            <h1>MAIL GÖNDERİLEMEDİ (Hata Detayı)</h1>
-                            <p><b>Hata Kodu:</b> ${error.code}</p>
-                            <p><b>Mesaj:</b> ${error.message}</p>
+                            <h1>MAIL GÖNDERİLEMEDİ!</h1>
+                            <p><b>Hata:</b> ${error.message}</p>
                             <hr>
-                            <p>Eğer 'ETIMEDOUT' görüyorsan Gmail sunucusu cevap vermiyor.</p>
-                            <p>Eğer 'EAUTH' görüyorsan şifren yanlıştır.</p>
+                            <p>Servis modu kullanılıyor. Eğer hala hata alıyorsan Gmail hesabında "Güvenliği düşük uygulamalar" ayarı veya 2FA sorunu olabilir.</p>
                             <a href="/forgot-password">Geri Dön</a>
                         </div>
                     `);

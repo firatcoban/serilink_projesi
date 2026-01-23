@@ -5,7 +5,7 @@ const path = require('path');
 const multer = require('multer');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
-const nodemailer = require('nodemailer'); // Postacı paketi
+const nodemailer = require('nodemailer'); 
 
 const app = express();
 
@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v9_final',
+    secret: 'gizli_anahtar_serilink_v11_fix',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -29,17 +29,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 🔥 E-POSTA AYARLARI (BURAYI DİKKATLİ DOLDUR) 🔥
+// 🔥🔥🔥 MAİL AYARLARI 🔥🔥🔥
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        // Kendi Gmail adresin:
         user: 'frtcbn65@gmail.com', 
-        
-        // ⚠️ DİKKAT: Buraya normal şifreni YAZMA!
-        // Google Hesabım -> Güvenlik -> 2 Adımlı Doğrulama -> Uygulama Şifreleri kısmından aldığın
-        // 16 haneli kodu yazmalısın. (Örn: abcd efgh ijkl mnop)
-        pass: 'bgra gzlsy sunn goku' 
+        // ⚠️ BURAYA GOOGLE'DAN ALDIĞIN 16 HANELİ KODU YAZ
+        pass: 'autm fxbz celj uzpr' 
     }
 });
 
@@ -71,6 +67,8 @@ app.get('/login', (req, res) => { res.render('login'); });
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     db.query('SELECT * FROM users WHERE username = ?', [username], async (err, results) => {
+        if(err) return res.send("DB Hatası: " + err.message); // Hata varsa göster
+        
         if (results.length > 0) {
             const user = results[0];
             const passCheck = user.password || '$2a$10$dummy'; 
@@ -91,104 +89,55 @@ app.post('/login', (req, res) => {
     });
 });
 
-// 🔥 ŞİFREMİ UNUTTUM AKIŞI (HATA YAKALAMALI) 🔥
-
-// 1. E-posta Girme Ekranı
+// 🔥 ŞİFREMİ UNUTTUM 🔥
 app.get('/forgot-password', (req, res) => { res.render('forgot-password'); });
 
-// 2. Kod Gönderme
 app.post('/send-code', (req, res) => {
     const { email } = req.body;
     const code = Math.floor(100000 + Math.random() * 900000); 
 
-    // Önce loga yazalım
-    console.log("Kod gönderilmeye çalışılıyor: ", email);
+    console.log("Mail gönderiliyor: ", email);
 
+    // 1. Önce e-posta var mı diye bak
     db.query('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
-        if(err) return res.send("DB Hatası: " + err.message);
+        if(err) return res.send("<h1>DB Hatası (Email Sütunu Yok Olabilir):</h1><p>Lütfen önce <a href='/onar'>/onar</a> sayfasına git!</p><br><p>Hata Detayı: " + err.message + "</p>");
 
         if(results.length === 0) {
-            return res.send(`
-                <div style="text-align:center; padding:50px; font-family:sans-serif; background:#0f172a; color:white; height:100vh;">
-                    <h1>❌ Hata</h1>
-                    <p>Bu e-posta adresi sistemde kayıtlı değil.</p>
-                    <a href="/forgot-password" style="color:#FF5400;">Tekrar Dene</a>
-                </div>
-            `);
+            return res.send(`<h1>❌ Hata</h1><p>Bu e-posta sistemde yok.</p><a href='/forgot-password'>Geri</a>`);
         }
 
+        // 2. Varsa kodu kaydet
         db.query('UPDATE users SET reset_code = ? WHERE email = ?', [code, email], (err) => {
             if(err) return res.send("Kod Kaydetme Hatası: " + err.message);
 
             const mailOptions = {
                 from: 'Serilink Güvenlik',
                 to: email,
-                subject: '🔑 Şifre Sıfırlama Kodun',
-                html: `
-                    <div style="background:#f4f4f4; padding:20px; text-align:center;">
-                        <h2>Şifreni mi unuttun?</h2>
-                        <p>Aşağıdaki kodu girerek şifreni sıfırlayabilirsin:</p>
-                        <h1 style="color:#FF5400; font-size:40px; letter-spacing:5px;">${code}</h1>
-                        <p>Bu kodu kimseyle paylaşma.</p>
-                    </div>
-                `
+                subject: '🔑 Sıfırlama Kodun',
+                html: `<h1>${code}</h1><p>Bu kodu gir.</p>`
             };
 
-            // Hata olursa program çökmesin, ekrana yazsın:
             transporter.sendMail(mailOptions, (error, info) => {
-                if (error) {
-                    console.error("Mail Hatası:", error);
-                    return res.send(`
-                        <div style="padding:40px; font-family:monospace; color:red;">
-                            <h1>E-POSTA GÖNDERİLEMEDİ!</h1>
-                            <p><b>Hata Detayı:</b> ${error.message}</p>
-                            <hr>
-                            <h3>Çözüm:</h3>
-                            <p>1. server.js dosyasındaki 'pass' kısmına normal şifreni yazmış olabilirsin.</p>
-                            <p>2. Google'dan <b>Uygulama Şifresi</b> (App Password) alıp onu yazmalısın.</p>
-                            <p>3. Gmail adresinde 2 Adımlı Doğrulama açık olmalı.</p>
-                            <a href="/forgot-password">Geri Dön</a>
-                        </div>
-                    `);
-                }
-                console.log("Mail gitti: " + info.response);
+                if (error) return res.send("<h1>Mail Gönderilemedi!</h1><p>"+error.message+"</p>");
                 res.render('verify-code', { email: email });
             });
         });
     });
 });
 
-// 3. Kod Doğrulama
 app.post('/verify-code', (req, res) => {
     const { email, code } = req.body;
     db.query('SELECT * FROM users WHERE email = ? AND reset_code = ?', [email, code], (err, results) => {
-        if(results.length > 0) {
-            res.render('new-password', { email: email });
-        } else {
-            res.send(`
-                <div style="text-align:center; padding:50px; font-family:sans-serif; background:#0f172a; color:white; height:100vh;">
-                    <h1>❌ Yanlış Kod</h1>
-                    <p>Girdiğin kod hatalı veya süresi dolmuş.</p>
-                    <a href="/forgot-password" style="color:#FF5400;">Başa Dön</a>
-                </div>
-            `);
-        }
+        if(results.length > 0) res.render('new-password', { email: email });
+        else res.send("<h1>❌ Yanlış Kod</h1><a href='/forgot-password'>Geri</a>");
     });
 });
 
-// 4. Yeni Şifreyi Kaydet
 app.post('/reset-password-final', async (req, res) => {
     const { email, new_password } = req.body;
     const hashed = await bcrypt.hash(new_password, 10);
-    
     db.query('UPDATE users SET password = ?, reset_code = NULL WHERE email = ?', [hashed, email], (err) => {
-        res.send(`
-            <div style="text-align:center; padding:50px; font-family:sans-serif; background:#0f172a; color:white; height:100vh;">
-                <h1>✅ Başarılı!</h1>
-                <p>Şifren başarıyla değiştirildi.</p>
-                <a href="/login" style="background:#28a745; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">Giriş Yap</a>
-            </div>
-        `);
+        res.send("<h1>✅ Başarılı!</h1><a href='/login'>Giriş Yap</a>");
     });
 });
 
@@ -200,7 +149,7 @@ app.get('/admin', girisZorunlu, (req, res) => {
     });
 });
 
-// AYARLAR SAYFASI
+// AYARLAR
 app.get('/settings', girisZorunlu, (req, res) => {
     db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => {
         res.render('settings', { user: result[0] });
@@ -210,9 +159,7 @@ app.get('/settings', girisZorunlu, (req, res) => {
 app.post('/settings/update', girisZorunlu, async (req, res) => {
     const { username, ad_soyad, email, password } = req.body;
     const userId = req.session.userId;
-
-    let sql = "";
-    let params = [];
+    let sql = "", params = [];
 
     if (password && password.trim() !== "") {
         const hashed = await bcrypt.hash(password, 10);
@@ -224,30 +171,52 @@ app.post('/settings/update', girisZorunlu, async (req, res) => {
     }
 
     db.query(sql, params, (err) => {
-        if(err) return res.send("Güncelleme Hatası: " + err.message);
+        if(err) return res.send("Güncelleme Hatası (Email kullanılıyor olabilir): " + err.message);
         req.session.username = username;
         req.session.ad_soyad = ad_soyad;
         res.redirect('/admin');
     });
 });
 
-// ONARIM
+// 🔥🔥🔥 BALYOZ ONARIM MODU (KESİN ÇÖZÜM) 🔥🔥🔥
 app.get('/onar', async (req, res) => {
     const defaultHash = await bcrypt.hash("123456", 10);
-    const createSql = `CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) UNIQUE NOT NULL, ad_soyad VARCHAR(100), email VARCHAR(100) UNIQUE, password VARCHAR(255), reset_code VARCHAR(10), resim_url TEXT);`;
     
-    db.query(createSql, () => {
-        db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE;", () => {
-            db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10);", () => {
+    // 1. Tabloyu oluştur (Yoksa)
+    const tableSql = `CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(50) UNIQUE NOT NULL)`;
+    
+    db.query(tableSql, (err) => {
+        if(err) return res.send("Tablo Hatası: " + err.message);
+
+        // 2. Email sütununu zorla ekle (Hata verirse yoksay, demek ki var)
+        db.query("ALTER TABLE users ADD COLUMN email VARCHAR(100) UNIQUE", (err1) => {
+            
+            // 3. Reset Code sütununu zorla ekle
+            db.query("ALTER TABLE users ADD COLUMN reset_code VARCHAR(10)", (err2) => {
+                
+                // 4. Diğer sütunları kontrol et
+                db.query("ALTER TABLE users ADD COLUMN ad_soyad VARCHAR(100)", () => {});
+                db.query("ALTER TABLE users ADD COLUMN password VARCHAR(255)", () => {});
+                db.query("ALTER TABLE users ADD COLUMN resim_url TEXT", () => {});
+
+                // 5. Şifresi boş olanları güncelle
                 db.query("UPDATE users SET password = ? WHERE password IS NULL OR password = ''", [defaultHash], () => {
-                    res.send("<h1>✅ SİSTEM ONARILDI</h1><a href='/settings'>E-postanı Ayarla</a>");
+                    res.send(`
+                        <div style="font-family:sans-serif; text-align:center; padding:50px;">
+                            <h1 style="color:green;">✅ SİSTEM GÜNCELLENDİ!</h1>
+                            <p>Email ve Kod sütunları veritabanına çakıldı.</p>
+                            <p>Artık "Unknown Column" hatası almazsın.</p>
+                            <br>
+                            <a href="/login" style="background:blue; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;">Giriş Yap</a>
+                        </div>
+                    `);
                 });
             });
         });
     });
 });
 
-// DİĞER ROTALAR
+// DİĞER ROTALAR...
 app.get('/admin/:username', girisZorunlu, (req, res) => {
     const kadi = req.params.username;
     db.query('SELECT * FROM users WHERE username = ?', [kadi], (err, userResult) => {

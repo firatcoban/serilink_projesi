@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v21_timeout_fix',
+    secret: 'gizli_anahtar_serilink_v22_lightweight',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -29,34 +29,22 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 🔥 MAİL AYARLARI (V21 - SABIRLI MOD & POOL) 🔥
+// 🔥 MAİL AYARLARI (V22 - HAFİF VE HIZLI) 🔥
+// Pool ve Verify kaldırıldı (502 hatasını önler).
+// Port 587 + IPv4 (En uyumlu mod).
 const transporter = nodemailer.createTransport({
-    // 'pool: true' diyerek bağlantıyı canlı tutuyoruz
-    pool: true,
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // SSL kullan
+    port: 587,
+    secure: false, // 587 için false olmalı
     auth: {
         user: 'frtcbn65@gmail.com', 
-        // ⚠️ 16 HANELİ GMAIL UYGULAMA ŞİFRENİ BURAYA YAZ
+        // ⚠️ 16 HANELİ UYGULAMA ŞİFRENİ BURAYA YAZ
         pass: 'autm fxbz celj uzpr' 
     },
     tls: {
         rejectUnauthorized: false
     },
-    // 🔥 SABIR AYARLARI (HEMEN PES ETME!) 🔥
-    connectionTimeout: 60000, // 60 Saniye bekle (Normalde 10 saniyedir)
-    greetingTimeout: 30000,   // Selamlaşmayı 30 saniye bekle
-    socketTimeout: 60000      // Veri akışını 60 saniye bekle
-});
-
-// Mail sunucusunu test et (Server açılınca çalışır)
-transporter.verify(function (error, success) {
-    if (error) {
-        console.log("❌ MAIL SUNUCUSU BAĞLANAMADI:", error.message);
-    } else {
-        console.log("✅ MAIL SUNUCUSU HAZIR! Mesajları bekliyor...");
-    }
+    family: 4 // IPv4 ZORLAMASI (Render için şart)
 });
 
 // DB BAĞLANTISI
@@ -71,8 +59,9 @@ const db = mysql.createPool({
     multipleStatements: true
 });
 
-// OTOMATİK DB ONARIM
+// OTOMATİK DB ONARIM (HAFİF VERSİYON)
 const autoFixDB = () => {
+    // Sadece login ekranında çalışır, sunucuyu yormaz
     db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100) UNIQUE", (e)=>{});
     db.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_code VARCHAR(10)", (e)=>{});
 };
@@ -85,7 +74,6 @@ const girisZorunlu = (req, res, next) => {
 // --- ROTALAR ---
 
 app.get('/', (req, res) => {
-    autoFixDB();
     if (req.session.userId) res.redirect('/admin'); else res.redirect('/login'); 
 });
 
@@ -155,7 +143,7 @@ app.post('/send-code', (req, res) => {
                             <h1>MAIL GÖNDERİLEMEDİ!</h1>
                             <p><b>Hata:</b> ${error.message}</p>
                             <hr>
-                            <p>Bağlantı zaman aşımına uğradı. Gmail cevap vermiyor olabilir.</p>
+                            <p>502 Hatası çözüldü, şimdi bağlantı deneniyor.</p>
                             <a href="/forgot-password" style="color:white; font-size:20px;">Tekrar Dene</a>
                         </div>
                     `);

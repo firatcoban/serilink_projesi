@@ -3,223 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Serilink Admin</title>
+    <title>Yönetim Paneli | Serilink</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        dark: { 900: '#0f172a', 800: '#1e293b', 700: '#334155' }
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Outfit', sans-serif; }
+        .glass-panel { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .sidebar-transition { transition: width 0.3s ease; }
+        .hide-text span { display: none; }
+        .collapsed { width: 5rem; }
+    </style>
 </head>
-<body class="bg-dark-900 text-slate-300 font-sans antialiased overflow-hidden">
+<body class="bg-[#0f172a] text-slate-300 overflow-hidden">
 
     <div class="flex h-screen">
 
-        <aside class="w-64 bg-dark-900 border-r border-slate-800 hidden md:flex flex-col">
-            <div class="h-16 flex items-center px-6 border-b border-slate-800">
-                <div class="flex items-center gap-2 text-white font-bold text-xl tracking-tight">
-                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-                        <i class="fa-solid fa-link"></i>
+        <aside id="sidebar" class="bg-[#0f172a] border-r border-slate-800 flex flex-col w-64 sidebar-transition relative z-20">
+            
+            <div class="h-20 flex items-center px-6 border-b border-slate-800 whitespace-nowrap overflow-hidden">
+                <div class="flex items-center gap-3 text-white font-bold text-2xl tracking-tight">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                        <i class="fa-solid fa-link text-sm"></i>
                     </div>
-                    Serilink<span class="text-indigo-500">.io</span>
+                    <span class="logo-text">Serilink<span class="text-indigo-500">.io</span></span>
                 </div>
             </div>
 
-            <nav class="flex-1 px-4 py-6 space-y-1">
-                <a href="/admin" class="flex items-center gap-3 px-4 py-3 text-white bg-indigo-600/10 text-indigo-400 rounded-xl transition font-medium border border-indigo-600/20">
-                    <i class="fa-solid fa-grid-2"></i> Paneller
+            <nav class="flex-1 px-3 py-6 space-y-2">
+                
+                <a href="/admin" class="flex items-center gap-4 px-4 py-3.5 bg-indigo-500/10 text-indigo-400 rounded-xl transition group whitespace-nowrap overflow-hidden">
+                    <i class="fa-solid fa-grid-2 min-w-[20px] text-center text-lg"></i>
+                    <span class="font-medium group-hover:translate-x-1 transition">Paneller</span>
                 </a>
-                <a href="/settings" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition font-medium">
-                    <i class="fa-solid fa-user-gear"></i> Hesap Ayarları
+
+                <a href="/settings" class="flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl transition group whitespace-nowrap overflow-hidden">
+                    <i class="fa-solid fa-user-gear min-w-[20px] text-center text-lg"></i>
+                    <span class="font-medium group-hover:translate-x-1 transition">Hesap Ayarları</span>
                 </a>
-                <a href="#" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition font-medium cursor-not-allowed opacity-50">
-                    <i class="fa-solid fa-chart-line"></i> Analizler (Yakında)
+
+                <a href="/stats" class="flex items-center gap-4 px-4 py-3.5 text-slate-400 hover:text-white hover:bg-slate-800/50 rounded-xl transition group whitespace-nowrap overflow-hidden">
+                    <i class="fa-solid fa-chart-pie min-w-[20px] text-center text-lg"></i>
+                    <span class="font-medium group-hover:translate-x-1 transition">İstatistikler</span>
                 </a>
+
             </nav>
 
             <div class="p-4 border-t border-slate-800">
-                <a href="/logout" class="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition font-medium">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Oturumu Kapat
+                <a href="/logout" class="flex items-center gap-4 px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-xl transition whitespace-nowrap overflow-hidden">
+                    <i class="fa-solid fa-arrow-right-from-bracket min-w-[20px] text-center"></i>
+                    <span class="font-medium">Çıkış Yap</span>
                 </a>
             </div>
+
+            <button onclick="toggleSidebar()" class="absolute -right-3 top-24 w-6 h-6 bg-indigo-600 rounded-full text-white flex items-center justify-center text-xs shadow-lg border-2 border-[#0f172a] hover:bg-indigo-500 transition">
+                <i id="toggleIcon" class="fa-solid fa-chevron-left"></i>
+            </button>
         </aside>
 
-        <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <main class="flex-1 flex flex-col h-screen overflow-hidden relative bg-[url('https://tailwindcss.com/_next/static/media/hero-dark.92751102.png')] bg-cover">
             
-            <header class="h-16 bg-dark-900/80 backdrop-blur border-b border-slate-800 flex items-center justify-between px-6 shrink-0 z-10">
-                <h2 class="text-lg font-semibold text-white">Yönetim Paneli</h2>
+            <header class="h-20 bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-8 shrink-0 z-10">
                 
-                <button class="md:hidden text-white text-xl">
-                    <i class="fa-solid fa-bars"></i>
-                </button>
+                <div>
+                    <h2 class="text-xl font-bold text-white">Yönetim Paneli</h2>
+                    <p class="text-xs text-slate-500">Hoş geldin, sistem aktif.</p>
+                </div>
 
-                <div class="hidden md:flex items-center gap-4">
-                    <div class="text-xs text-slate-500 font-medium px-3 py-1 bg-slate-800 rounded-full border border-slate-700">
-                        <%= new Date().toLocaleDateString('tr-TR') %>
+                <div class="flex items-center gap-5">
+                    
+                    <div class="hidden md:flex flex-col items-end">
+                        <span class="text-sm font-bold text-white"><%= adminName || 'Yönetici' %></span>
+                        <span class="text-[10px] text-slate-400"><%= new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) %></span>
                     </div>
-                    <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-xs">
-                        A
+
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-indigo-500/20 border-2 border-[#0f172a]">
+                        <%= adminName ? adminName.charAt(0).toUpperCase() : 'A' %>
                     </div>
                 </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto p-6 md:p-8">
+            <div class="flex-1 overflow-y-auto p-8">
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-dark-800 p-5 rounded-2xl border border-slate-700 shadow-sm">
-                        <div class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Toplam Panel</div>
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-2xl font-bold text-white"><%= users.length %></h3>
-                            <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-400">
-                                <i class="fa-solid fa-users"></i>
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Toplam Panel</p>
+                            <h3 class="text-3xl font-bold text-white"><%= users.length %></h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 text-xl">
+                            <i class="fa-solid fa-layer-group"></i>
                         </div>
                     </div>
-                    <div class="bg-dark-800 p-5 rounded-2xl border border-slate-700 shadow-sm">
-                        <div class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Toplam Link</div>
-                        <div class="flex items-center justify-between">
-                            <% 
-                                let totalLinks = 0;
-                                users.forEach(u => totalLinks += (u.link_sayisi || 0));
-                            %>
-                            <h3 class="text-2xl font-bold text-white"><%= totalLinks %></h3>
-                            <div class="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
-                                <i class="fa-solid fa-link"></i>
-                            </div>
+
+                    <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Toplam Link</p>
+                            <% let totalLinks = 0; users.forEach(u => totalLinks += (u.link_sayisi || 0)); %>
+                            <h3 class="text-3xl font-bold text-white"><%= totalLinks %></h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 text-xl">
+                            <i class="fa-solid fa-link"></i>
                         </div>
                     </div>
-                    <div class="bg-dark-800 p-5 rounded-2xl border border-slate-700 shadow-sm">
-                        <div class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Sistem Durumu</div>
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-bold text-emerald-400">Aktif</h3>
-                            <div class="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400">
-                                <i class="fa-solid fa-server"></i>
-                            </div>
+
+                    <div class="glass-panel p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-1">Sistem</p>
+                            <h3 class="text-lg font-bold text-emerald-400">Aktif ✅</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xl">
+                            <i class="fa-solid fa-server"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                <div class="flex items-center justify-between mb-6">
                     <div>
                         <h3 class="text-xl font-bold text-white">Mevcut Paneller</h3>
-                        <p class="text-sm text-slate-400">Oluşturduğun kullanıcı profillerini buradan yönet.</p>
+                        <p class="text-sm text-slate-400">Oluşturduğun profilleri yönet.</p>
                     </div>
-                    <button onclick="document.getElementById('createModal').classList.remove('hidden')" 
-                        class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium transition flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95">
-                        <i class="fa-solid fa-plus"></i> Yeni Panel Oluştur
+                    <button onclick="openModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-lg shadow-indigo-600/30 transition active:scale-95 flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Yeni Panel Oluştur</span>
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-                    
                     <% users.forEach(user => { %>
-                        <div class="group bg-dark-800 rounded-2xl border border-slate-700 hover:border-indigo-500/50 transition duration-300 relative overflow-hidden flex flex-col">
+                        <div class="glass-panel rounded-2xl p-6 group hover:border-indigo-500/30 transition duration-300 relative">
                             
-                            <div class="h-2 bg-gradient-to-r from-indigo-500 to-purple-500 w-full"></div>
-                            
-                            <a href="/admin/delete-user/<%= user.id %>" onclick="return confirm('Silmek istediğine emin misin?')"
-                                class="absolute top-4 right-4 text-slate-600 hover:text-red-500 transition opacity-0 group-hover:opacity-100 z-10 p-2">
+                            <a href="/admin/delete-user/<%= user.id %>" onclick="return confirm('Silmek istediğine emin misin?')" 
+                               class="absolute top-4 right-4 text-slate-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition p-2 bg-[#0f172a] rounded-lg">
                                 <i class="fa-solid fa-trash"></i>
                             </a>
 
-                            <div class="p-6 flex-1 flex flex-col items-center text-center">
-                                <div class="w-16 h-16 rounded-full bg-slate-700 border-4 border-slate-800 mb-4 overflow-hidden shadow-md">
-                                    <% if(user.resim_url) { %>
-                                        <img src="<%= user.resim_url %>" class="w-full h-full object-cover">
-                                    <% } else { %>
-                                        <div class="w-full h-full flex items-center justify-center">
-                                            <i class="fa-solid fa-user text-2xl text-slate-500"></i>
-                                        </div>
-                                    <% } %>
+                            <div class="flex flex-col items-center text-center pt-2">
+                                <div class="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-indigo-500 to-purple-500 mb-4 shadow-xl">
+                                    <div class="w-full h-full rounded-full bg-slate-800 overflow-hidden">
+                                        <% if(user.resim_url) { %>
+                                            <img src="<%= user.resim_url %>" class="w-full h-full object-cover">
+                                        <% } else { %>
+                                            <div class="flex items-center justify-center h-full text-slate-500"><i class="fa-solid fa-user text-2xl"></i></div>
+                                        <% } %>
+                                    </div>
                                 </div>
 
-                                <h4 class="text-white font-bold text-lg truncate w-full"><%= user.ad_soyad %></h4>
-                                <p class="text-slate-500 text-xs mb-4">@<%= user.username %></p>
+                                <h4 class="text-white font-bold text-lg mb-1"><%= user.ad_soyad %></h4>
+                                <p class="text-xs text-slate-500 mb-4 bg-slate-800 px-2 py-1 rounded-md">@<%= user.username %></p>
 
-                                <div class="w-full bg-slate-700/30 rounded-lg py-2 px-4 mb-6 flex justify-between items-center text-xs">
-                                    <span class="text-slate-400">Link Sayısı:</span>
+                                <div class="w-full h-px bg-slate-700/50 mb-4"></div>
+
+                                <div class="flex justify-between w-full text-xs text-slate-400 mb-6 px-2">
+                                    <span>Linkler</span>
                                     <span class="text-white font-bold"><%= user.link_sayisi || 0 %></span>
                                 </div>
-                                
-                                <a href="/admin/<%= user.username %>" class="mt-auto w-full bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-lg text-sm font-medium transition border border-slate-600">
+
+                                <a href="/admin/<%= user.username %>" class="w-full py-2.5 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-medium transition border border-slate-600 hover:border-slate-500">
                                     Yönet & Düzenle
                                 </a>
                             </div>
                         </div>
                     <% }); %>
-
+                    
                     <% if(users.length === 0) { %>
-                        <div class="col-span-full py-20 text-center border-2 border-dashed border-slate-800 rounded-2xl">
-                            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-600">
-                                <i class="fa-regular fa-folder-open text-2xl"></i>
-                            </div>
-                            <p class="text-slate-400 font-medium">Henüz panel bulunmuyor.</p>
-                            <button onclick="document.getElementById('createModal').classList.remove('hidden')" class="text-indigo-400 hover:text-indigo-300 text-sm mt-2">
-                                + İlk panelini oluştur
-                            </button>
+                        <div class="col-span-full py-16 text-center border-2 border-dashed border-slate-800 rounded-2xl">
+                            <i class="fa-regular fa-folder-open text-3xl text-slate-600 mb-3"></i>
+                            <p class="text-slate-500">Henüz panel yok.</p>
                         </div>
                     <% } %>
-
                 </div>
+
             </div>
         </main>
     </div>
 
-    <div id="createModal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-dark-800 w-full max-w-md rounded-2xl border border-slate-700 shadow-2xl animate-[fadeIn_0.2s_ease-out]">
-            
+    <div id="createModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#1e293b] w-full max-w-md rounded-2xl border border-slate-700 shadow-2xl animate-[fadeIn_0.2s_ease-out]">
             <div class="flex items-center justify-between p-6 border-b border-slate-700">
-                <h3 class="text-lg font-bold text-white">Yeni Panel Oluştur</h3>
-                <button onclick="document.getElementById('createModal').classList.add('hidden')" class="text-slate-400 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <h3 class="text-lg font-bold text-white">Yeni Panel</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-
             <form action="/admin/create-user" method="POST" class="p-6 space-y-4">
-                
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Kullanıcı Adı</label>
-                    <input type="text" name="username" placeholder="örn: firo" required 
-                        class="w-full bg-dark-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600">
+                    <input type="text" name="username" required class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Ad Soyad</label>
-                    <input type="text" name="ad_soyad" placeholder="Profil Başlığı" required 
-                        class="w-full bg-dark-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600">
+                    <input type="text" name="ad_soyad" required class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition">
                 </div>
-
                 <div>
                     <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Şifre</label>
-                    <input type="password" name="password" placeholder="******" required 
-                        class="w-full bg-dark-900 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition placeholder-slate-600">
+                    <input type="password" name="password" required class="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition">
                 </div>
-
-                <div class="pt-2">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition shadow-lg shadow-indigo-600/20">
-                        Oluştur
-                    </button>
-                </div>
-
+                <button type="submit" class="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg shadow-lg">Oluştur</button>
             </form>
         </div>
     </div>
 
-    <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+    <script>
+        // Sidebar Toggle Fonksiyonu
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const icon = document.getElementById('toggleIcon');
+            const logoTexts = document.querySelectorAll('.logo-text, .font-medium'); // Gizlenecek yazılar
+            
+            sidebar.classList.toggle('collapsed');
+            
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.remove('fa-chevron-left');
+                icon.classList.add('fa-chevron-right');
+            } else {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-left');
+            }
         }
-    </style>
+
+        function openModal() { document.getElementById('createModal').classList.remove('hidden'); }
+        function closeModal() { document.getElementById('createModal').classList.add('hidden'); }
+    </script>
 
 </body>
 </html>

@@ -61,7 +61,7 @@
             <header class="h-20 bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-8 shrink-0 z-10">
                 <div>
                     <h2 class="text-xl font-bold text-white">Yönetim Paneli</h2>
-                    <p class="text-xs text-slate-500">Sistem aktif.</p>
+                    <p class="text-xs text-slate-500">Hoş geldin, sistem aktif.</p>
                 </div>
                 <div class="flex items-center gap-5">
                     <div class="hidden md:flex flex-col items-end">
@@ -133,7 +133,7 @@
     </div>
 
     <script>
-        function toggleSidebar() { const s = document.getElementById('sidebar'); const i = document.getElementById('toggleIcon'); s.classList.toggle('collapsed'); i.classList.toggle('fa-chevron-right'); i.classList.toggle('fa-chevron-left'); }
+        function toggleSidebar() { const s = document.getElementById('sidebar'); const i = document.getElementById('toggleIcon'); s.classList.toggle('collapsed'); if(s.classList.contains('collapsed')) { i.classList.remove('fa-chevron-left'); i.classList.add('fa-chevron-right'); } else { i.classList.remove('fa-chevron-right'); i.classList.add('fa-chevron-left'); } }
         function openModal() { document.getElementById('createModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('createModal').classList.add('hidden'); }
     </script>

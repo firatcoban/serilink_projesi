@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v26_password_modal',
+    secret: 'gizli_anahtar_serilink_v27_final_design',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -34,6 +34,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'frtcbn65@gmail.com', 
+        // ⚠️ 16 HANELİ ŞİFRENİ BURAYA YAZ
         pass: 'autm fxbz celj uzpr' 
     }
 });
@@ -86,7 +87,8 @@ app.post('/login', (req, res) => {
         if(err) return res.send("DB Hatası: " + err.message);
         if (results.length > 0) {
             const user = results[0];
-            const match = await bcrypt.compare(password, user.password);
+            const passCheck = user.password || '$2a$10$dummy'; 
+            const match = await bcrypt.compare(password, passCheck);
             if (match) {
                 req.session.userId = user.id;
                 req.session.username = user.username;
@@ -101,7 +103,7 @@ app.post('/login', (req, res) => {
     });
 });
 
-// --- ŞİFRE DEĞİŞTİRME SAYFASI (YENİ) ---
+// --- ŞİFRE DEĞİŞTİRME SAYFASI ---
 app.get('/change-password', girisZorunlu, (req, res) => {
     res.render('change-password', { error: null, success: null });
 });
@@ -110,8 +112,14 @@ app.post('/change-password-action', girisZorunlu, (req, res) => {
     const { old_password, new_password, confirm_password } = req.body;
     const userId = req.session.userId;
 
+    // KURAL 1: Yeni şifreler uyuşuyor mu?
     if (new_password !== confirm_password) {
-        return res.render('change-password', { error: 'Yeni şifreler uyuşmuyor!', success: null });
+        return res.render('change-password', { error: 'Yeni şifreler birbiriyle uyuşmuyor!', success: null });
+    }
+
+    // KURAL 2: Eski şifre ile yeni şifre aynı mı? (SENİN İSTEĞİN)
+    if (old_password === new_password) {
+        return res.render('change-password', { error: 'Yeni şifre, eski şifrenizle aynı olamaz!', success: null });
     }
 
     db.query('SELECT * FROM users WHERE id = ?', [userId], async (err, results) => {
@@ -119,17 +127,17 @@ app.post('/change-password-action', girisZorunlu, (req, res) => {
         const match = await bcrypt.compare(old_password, user.password);
 
         if (!match) {
-            return res.render('change-password', { error: 'Eski şifreniz yanlış!', success: null });
+            return res.render('change-password', { error: 'Mevcut şifrenizi yanlış girdiniz!', success: null });
         }
 
         const hashed = await bcrypt.hash(new_password, 10);
         db.query('UPDATE users SET password = ? WHERE id = ?', [hashed, userId], (err) => {
-            res.render('change-password', { error: null, success: 'Şifreniz başarıyla değiştirildi!' });
+            res.render('change-password', { error: null, success: 'Harika! Şifreniz başarıyla güncellendi.' });
         });
     });
 });
 
-// --- AYARLAR GÜNCELLEME (ŞİFRE KISMI KALDIRILDI) ---
+// --- AYARLAR GÜNCELLEME (BİYOGRAFİ KALDIRILDI) ---
 app.get('/settings', girisZorunlu, (req, res) => {
     db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => { 
         res.render('settings', { user: result[0] }); 
@@ -137,18 +145,19 @@ app.get('/settings', girisZorunlu, (req, res) => {
 });
 
 app.post('/settings/update', girisZorunlu, upload.single('profil_resmi'), (req, res) => {
-    const { username, ad_soyad, email, biyografi } = req.body;
+    const { username, ad_soyad, email } = req.body; // Biyografi burada artık yok
     const userId = req.session.userId;
     
-    // Şifre güncellemesi buradan kalktı
     let img = req.file ? '/images/'+req.file.filename : null;
+    
+    // Biyografi sütununu SQL'den çıkardık
     let sql = img 
-        ? "UPDATE users SET username=?, ad_soyad=?, email=?, biyografi=?, resim_url=? WHERE id=?" 
-        : "UPDATE users SET username=?, ad_soyad=?, email=?, biyografi=? WHERE id=?";
+        ? "UPDATE users SET username=?, ad_soyad=?, email=?, resim_url=? WHERE id=?" 
+        : "UPDATE users SET username=?, ad_soyad=?, email=? WHERE id=?";
     
     let params = img 
-        ? [username, ad_soyad, email, biyografi, img, userId] 
-        : [username, ad_soyad, email, biyografi, userId];
+        ? [username, ad_soyad, email, img, userId] 
+        : [username, ad_soyad, email, userId];
 
     db.query(sql, params, (err) => {
         if(err) return res.send("Hata: " + err.message);

@@ -9,15 +9,13 @@ const nodemailer = require('nodemailer');
 
 const app = express();
 
-// --- AYARLAR ---
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// OTURUM
 app.use(session({
-    secret: 'gizli_anahtar_serilink_v27_final_design',
+    secret: 'gizli_anahtar_serilink_v28_final',
     resave: false,
     saveUninitialized: false,
     cookie: { maxAge: 3600000 }
@@ -29,17 +27,14 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// 🔥 MAİL AYARLARI 🔥
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'frtcbn65@gmail.com', 
-        // ⚠️ 16 HANELİ ŞİFRENİ BURAYA YAZ
         pass: 'autm fxbz celj uzpr' 
     }
 });
 
-// 🔥 VERİTABANI BAĞLANTISI 🔥
 const dbConfig = {
     host: 'b9jczsecmhesvtz8fkx0-mysql.services.clever-cloud.com',           
     user: 'uzzt3cxlzejgx2x3',           
@@ -73,8 +68,6 @@ const girisZorunlu = (req, res, next) => {
     next();
 };
 
-// --- ROTALAR ---
-
 app.get('/', (req, res) => {
     if (req.session.userId) res.redirect('/admin'); else res.redirect('/login'); 
 });
@@ -103,7 +96,6 @@ app.post('/login', (req, res) => {
     });
 });
 
-// --- ŞİFRE DEĞİŞTİRME SAYFASI ---
 app.get('/change-password', girisZorunlu, (req, res) => {
     res.render('change-password', { error: null, success: null });
 });
@@ -112,14 +104,11 @@ app.post('/change-password-action', girisZorunlu, (req, res) => {
     const { old_password, new_password, confirm_password } = req.body;
     const userId = req.session.userId;
 
-    // KURAL 1: Yeni şifreler uyuşuyor mu?
     if (new_password !== confirm_password) {
-        return res.render('change-password', { error: 'Yeni şifreler birbiriyle uyuşmuyor!', success: null });
+        return res.render('change-password', { error: 'Yeni şifreler uyuşmuyor!', success: null });
     }
-
-    // KURAL 2: Eski şifre ile yeni şifre aynı mı? (SENİN İSTEĞİN)
     if (old_password === new_password) {
-        return res.render('change-password', { error: 'Yeni şifre, eski şifrenizle aynı olamaz!', success: null });
+        return res.render('change-password', { error: 'Yeni şifre, eskisiyle aynı olamaz!', success: null });
     }
 
     db.query('SELECT * FROM users WHERE id = ?', [userId], async (err, results) => {
@@ -127,17 +116,16 @@ app.post('/change-password-action', girisZorunlu, (req, res) => {
         const match = await bcrypt.compare(old_password, user.password);
 
         if (!match) {
-            return res.render('change-password', { error: 'Mevcut şifrenizi yanlış girdiniz!', success: null });
+            return res.render('change-password', { error: 'Mevcut şifre yanlış!', success: null });
         }
 
         const hashed = await bcrypt.hash(new_password, 10);
         db.query('UPDATE users SET password = ? WHERE id = ?', [hashed, userId], (err) => {
-            res.render('change-password', { error: null, success: 'Harika! Şifreniz başarıyla güncellendi.' });
+            res.render('change-password', { error: null, success: 'Şifreniz başarıyla değiştirildi.' });
         });
     });
 });
 
-// --- AYARLAR GÜNCELLEME (BİYOGRAFİ KALDIRILDI) ---
 app.get('/settings', girisZorunlu, (req, res) => {
     db.query('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, result) => { 
         res.render('settings', { user: result[0] }); 
@@ -145,19 +133,14 @@ app.get('/settings', girisZorunlu, (req, res) => {
 });
 
 app.post('/settings/update', girisZorunlu, upload.single('profil_resmi'), (req, res) => {
-    const { username, ad_soyad, email } = req.body; // Biyografi burada artık yok
+    const { username, ad_soyad, email } = req.body; 
     const userId = req.session.userId;
     
     let img = req.file ? '/images/'+req.file.filename : null;
-    
-    // Biyografi sütununu SQL'den çıkardık
     let sql = img 
         ? "UPDATE users SET username=?, ad_soyad=?, email=?, resim_url=? WHERE id=?" 
         : "UPDATE users SET username=?, ad_soyad=?, email=? WHERE id=?";
-    
-    let params = img 
-        ? [username, ad_soyad, email, img, userId] 
-        : [username, ad_soyad, email, userId];
+    let params = img ? [username, ad_soyad, email, img, userId] : [username, ad_soyad, email, userId];
 
     db.query(sql, params, (err) => {
         if(err) return res.send("Hata: " + err.message);
@@ -167,7 +150,6 @@ app.post('/settings/update', girisZorunlu, upload.single('profil_resmi'), (req, 
     });
 });
 
-// ŞİFREMİ UNUTTUM (ACİL DURUM MODU)
 app.get('/forgot-password', (req, res) => { res.render('forgot-password'); });
 app.post('/send-code', (req, res) => {
     const { email } = req.body;
@@ -192,8 +174,6 @@ app.post('/reset-password-final', async (req, res) => {
     const hashed = await bcrypt.hash(req.body.new_password, 10);
     db.query('UPDATE users SET password=?, reset_code=NULL WHERE email=?', [hashed, req.body.email], ()=> res.redirect('/login'));
 });
-
-// DİĞER STANDART ROTALAR
 app.get('/admin', girisZorunlu, (req, res) => {
     db.query(`SELECT u.*, COUNT(l.id) as link_sayisi FROM users u LEFT JOIN links l ON u.id = l.user_id GROUP BY u.id`, (err, results) => {
         res.render('admin', { users: results, activeId: req.session.userId });
@@ -230,6 +210,5 @@ app.get('/:kullaniciadi', (req, res) => {
 app.get('/git/:id', (req, res) => {
     db.query("SELECT url FROM links WHERE id=?", [req.params.id], (e,r)=> res.redirect(r[0].url));
 });
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Sistem Hazır!`));

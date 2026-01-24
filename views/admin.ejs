@@ -202,14 +202,10 @@
     </div>
 
     <script>
-        // Sidebar Toggle Fonksiyonu
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const icon = document.getElementById('toggleIcon');
-            const logoTexts = document.querySelectorAll('.logo-text, .font-medium'); // Gizlenecek yazılar
-            
             sidebar.classList.toggle('collapsed');
-            
             if (sidebar.classList.contains('collapsed')) {
                 icon.classList.remove('fa-chevron-left');
                 icon.classList.add('fa-chevron-right');
@@ -218,10 +214,8 @@
                 icon.classList.add('fa-chevron-left');
             }
         }
-
         function openModal() { document.getElementById('createModal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('createModal').classList.add('hidden'); }
     </script>
-
 </body>
 </html>

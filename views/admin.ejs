@@ -38,7 +38,7 @@
             <div class="h-24 flex items-center px-8 border-b border-slate-800/50">
                 <div class="flex items-center gap-3 font-bold text-2xl tracking-tight text-white group cursor-pointer">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition overflow-hidden">
-                       <img src="/images/serilink.png" alt="Serilink Logo" class="w-6 h-6 object-contain brightness-0 invert">
+                       <img src="/images/serilink.png" alt="Serilink Logo" class="w-7 h-7 object-contain invert mix-blend-screen">
                     </div>
                     <span class="logo-text font-extrabold tracking-tighter">Serilink<span class="text-indigo-500">.io</span></span>
                 </div>
@@ -92,12 +92,12 @@
 
                 <div class="w-1/3 flex justify-end items-center gap-4">
                     <div class="text-right hidden sm:block">
-                        <div class="text-white font-bold text-sm"><%= adminName || 'Kullanıcı' %></div>
+                        <div class="text-white font-bold text-sm"><%= typeof adminName !== 'undefined' ? adminName : 'Kullanıcı' %></div>
                         <div class="text-xs text-slate-400">Admin</div>
                     </div>
                     <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 p-0.5 shadow-lg shadow-indigo-500/20">
                         <div class="w-full h-full bg-[#0f172a] rounded-[14px] flex items-center justify-center text-white font-bold text-lg">
-                            <%= adminName ? adminName.charAt(0).toUpperCase() : 'A' %>
+                            <%= typeof adminName !== 'undefined' ? adminName.charAt(0).toUpperCase() : 'A' %>
                         </div>
                     </div>
                 </div>
@@ -110,7 +110,7 @@
                         <div class="absolute -right-6 -top-6 w-24 h-24 bg-indigo-500/20 rounded-full blur-2xl group-hover:bg-indigo-500/30 transition"></div>
                         <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Toplam Panel</p>
                         <div class="flex items-end justify-between">
-                            <h3 class="text-4xl font-black text-white"><%= users.length %></h3>
+                            <h3 class="text-4xl font-black text-white"><%= users ? users.length : 0 %></h3>
                             <i class="fa-solid fa-layer-group text-3xl text-indigo-500/50 group-hover:scale-110 transition"></i>
                         </div>
                     </div>
@@ -119,7 +119,7 @@
                         <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl group-hover:bg-blue-500/30 transition"></div>
                         <p class="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Aktif Linkler</p>
                         <div class="flex items-end justify-between">
-                            <% let totalLinks = 0; users.forEach(u => totalLinks += (u.link_sayisi || 0)); %>
+                            <% let totalLinks = 0; if(users) { users.forEach(u => totalLinks += (u.link_sayisi || 0)); } %>
                             <h3 class="text-4xl font-black text-white"><%= totalLinks %></h3>
                             <i class="fa-solid fa-link text-3xl text-blue-500/50 group-hover:scale-110 transition"></i>
                         </div>
@@ -154,49 +154,49 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-                    <% users.forEach(user => { %>
-                        <div class="glass-panel rounded-3xl p-1 relative group hover:-translate-y-1 transition duration-300">
-                            <div class="bg-[#0f172a]/80 rounded-[22px] p-6 h-full flex flex-col items-center text-center relative overflow-hidden">
-                                
-                                <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-indigo-500/10 to-transparent"></div>
-                                
-                                <a href="/admin/delete-user/<%= user.id %>" onclick="return confirm('Bu paneli silmek istediğine emin misin?')" 
-                                   class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition opacity-0 group-hover:opacity-100 z-10 border border-slate-700">
-                                    <i class="fa-solid fa-trash text-xs"></i>
-                                </a>
+                    <% if(users && users.length > 0) { %>
+                        <% users.forEach(user => { %>
+                            <div class="glass-panel rounded-3xl p-1 relative group hover:-translate-y-1 transition duration-300">
+                                <div class="bg-[#0f172a]/80 rounded-[22px] p-6 h-full flex flex-col items-center text-center relative overflow-hidden">
+                                    
+                                    <div class="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-indigo-500/10 to-transparent"></div>
+                                    
+                                    <a href="/admin/delete-user/<%= user.id %>" onclick="return confirm('Bu paneli silmek istediğine emin misin?')" 
+                                       class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition opacity-0 group-hover:opacity-100 z-10 border border-slate-700">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </a>
 
-                                <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 mb-4 shadow-xl shadow-indigo-500/20 relative z-10">
-                                    <div class="w-full h-full rounded-full bg-slate-900 overflow-hidden border-2 border-[#0f172a]">
-                                        <% if(user.resim_url) { %>
-                                            <img src="<%= user.resim_url %>" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                                        <% } else { %>
-                                            <div class="flex items-center justify-center h-full text-slate-600"><i class="fa-solid fa-user text-3xl"></i></div>
-                                        <% } %>
+                                    <div class="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 mb-4 shadow-xl shadow-indigo-500/20 relative z-10">
+                                        <div class="w-full h-full rounded-full bg-slate-900 overflow-hidden border-2 border-[#0f172a]">
+                                            <% if(user.resim_url) { %>
+                                                <img src="<%= user.resim_url %>" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
+                                            <% } else { %>
+                                                <div class="flex items-center justify-center h-full text-slate-600"><i class="fa-solid fa-user text-3xl"></i></div>
+                                            <% } %>
+                                        </div>
                                     </div>
+
+                                    <h4 class="text-white font-bold text-lg leading-tight mb-1"><%= user.ad_soyad %></h4>
+                                    <p class="text-xs font-medium text-indigo-400 mb-5 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">@<%= user.username %></p>
+
+                                    <div class="grid grid-cols-2 gap-2 w-full mb-6">
+                                        <div class="bg-slate-800/50 rounded-xl p-2 border border-slate-700/50">
+                                            <div class="text-[10px] text-slate-400 uppercase font-bold">Linkler</div>
+                                            <div class="text-white font-bold"><%= user.link_sayisi || 0 %></div>
+                                        </div>
+                                        <div class="bg-slate-800/50 rounded-xl p-2 border border-slate-700/50">
+                                            <div class="text-[10px] text-slate-400 uppercase font-bold">Tıklanma</div>
+                                            <div class="text-white font-bold">-</div>
+                                        </div>
+                                    </div>
+
+                                    <a href="/admin/<%= user.username %>" class="mt-auto w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold transition border border-slate-700 group-hover:border-indigo-500/50 group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-violet-600 group-hover:shadow-lg group-hover:shadow-indigo-500/25">
+                                        Yönet & Düzenle
+                                    </a>
                                 </div>
-
-                                <h4 class="text-white font-bold text-lg leading-tight mb-1"><%= user.ad_soyad %></h4>
-                                <p class="text-xs font-medium text-indigo-400 mb-5 bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">@<%= user.username %></p>
-
-                                <div class="grid grid-cols-2 gap-2 w-full mb-6">
-                                    <div class="bg-slate-800/50 rounded-xl p-2 border border-slate-700/50">
-                                        <div class="text-[10px] text-slate-400 uppercase font-bold">Linkler</div>
-                                        <div class="text-white font-bold"><%= user.link_sayisi || 0 %></div>
-                                    </div>
-                                    <div class="bg-slate-800/50 rounded-xl p-2 border border-slate-700/50">
-                                        <div class="text-[10px] text-slate-400 uppercase font-bold">Tıklanma</div>
-                                        <div class="text-white font-bold">-</div>
-                                    </div>
-                                </div>
-
-                                <a href="/admin/<%= user.username %>" class="mt-auto w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-sm font-bold transition border border-slate-700 group-hover:border-indigo-500/50 group-hover:bg-gradient-to-r group-hover:from-indigo-600 group-hover:to-violet-600 group-hover:shadow-lg group-hover:shadow-indigo-500/25">
-                                    Yönet & Düzenle
-                                </a>
                             </div>
-                        </div>
-                    <% }); %>
-                    
-                    <% if(users.length === 0) { %>
+                        <% }); %>
+                    <% } else { %>
                         <div class="col-span-full py-20 text-center border-2 border-dashed border-slate-800 rounded-3xl bg-slate-900/50">
                             <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-600">
                                 <i class="fa-regular fa-folder-open text-4xl"></i>
